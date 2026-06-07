@@ -24,9 +24,17 @@ Use this when you want to test changes before deploying to Vercel.
 
 Prerequisites:
 
-- Docker Desktop is installed and running
-- Docker Desktop has WSL integration enabled for `Ubuntu-24.04`
+- Docker is available in WSL, either through Docker Desktop WSL integration or Docker Engine installed inside WSL
 - Node.js 20 or newer is available in WSL
+
+To install Docker Engine directly inside WSL Ubuntu:
+
+```bash
+cd /home/wsw/git/time-tracker
+bash scripts/install-docker-wsl.sh
+```
+
+The installer asks for your WSL `sudo` password. After it finishes, close and reopen the WSL terminal so your `docker` group membership is refreshed.
 
 Start the app against a local Supabase stack:
 
