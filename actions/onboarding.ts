@@ -12,7 +12,15 @@ const onboardingSchema = z.object({
   child2Target: z.coerce.number().min(60).max(1440).optional(),
 });
 
-export async function submitOnboarding(prevState: any, formData: FormData) {
+type OnboardingState = {
+  error?: string;
+  fieldErrors?: z.inferFlattenedErrors<typeof onboardingSchema>["fieldErrors"];
+};
+
+export async function submitOnboarding(
+  _prevState: OnboardingState | null,
+  formData: FormData
+): Promise<OnboardingState> {
   const supabase = await createClient();
 
   // 1. Get current user

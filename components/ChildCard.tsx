@@ -27,7 +27,7 @@ export default function ChildCard({
   activeSession,
   todayTotalMinutes,
 }: ChildCardProps) {
-  const [currentDuration, setCurrentDuration] = useState(0);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [isPending, setIsPending] = useState(false);
 
   const [showStartDialog, setShowStartDialog] = useState(false);
@@ -37,20 +37,25 @@ export default function ChildCard({
   // Update current active session duration every minute
   useEffect(() => {
     if (!activeSession) {
-      setCurrentDuration(0);
       return;
     }
 
-    const updateDuration = () => {
-      const mins = calculateDurationMinutes(activeSession.start_at, new Date());
-      setCurrentDuration(mins > 0 ? mins : 0);
-    };
+    const interval = setInterval(() => {
+      setNowMs(Date.now());
+    }, 60000);
 
-    updateDuration();
-    const interval = setInterval(updateDuration, 60000);
     return () => clearInterval(interval);
   }, [activeSession]);
 
+  const currentDuration = activeSession
+    ? Math.max(
+        0,
+        calculateDurationMinutes(
+          activeSession.start_at,
+          new Date(nowMs)
+        )
+      )
+    : 0;
   const totalMinutes = todayTotalMinutes + currentDuration;
   const remainingMinutes = Math.max(0, child.target_minutes_per_day - totalMinutes);
   const percentage = Math.round((totalMinutes / child.target_minutes_per_day) * 100);

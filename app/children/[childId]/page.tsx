@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { formatKST, formatDuration, formatDateDisplay, formatTimeRange } from "@/lib/date/utils";
+import { formatDuration, formatDateDisplay, formatTimeRange } from "@/lib/date/utils";
 import BottomNav from "@/components/BottomNav";
 
 export default async function ChildDetailPage(props: { params: Promise<{ childId: string }> }) {

@@ -33,6 +33,7 @@ export type Database = {
           avatar_url?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
       families: {
         Row: {
@@ -59,6 +60,7 @@ export type Database = {
           default_target_minutes?: number;
           updated_at?: string;
         };
+        Relationships: [];
       };
       family_members: {
         Row: {
@@ -78,6 +80,7 @@ export type Database = {
         Update: {
           role?: "owner" | "parent";
         };
+        Relationships: [];
       };
       children: {
         Row: {
@@ -107,6 +110,7 @@ export type Database = {
           display_order?: number;
           updated_at?: string;
         };
+        Relationships: [];
       };
       wearing_sessions: {
         Row: {
@@ -155,6 +159,7 @@ export type Database = {
           deleted_by?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
       invite_codes: {
         Row: {
@@ -181,6 +186,7 @@ export type Database = {
           used_by?: string | null;
           used_at?: string | null;
         };
+        Relationships: [];
       };
     };
     Views: {
@@ -192,6 +198,7 @@ export type Database = {
           session_count: number;
           total_minutes: number;
         };
+        Relationships: [];
       };
       weekly_wearing_summary: {
         Row: {
@@ -201,6 +208,7 @@ export type Database = {
           session_count: number;
           total_minutes: number;
         };
+        Relationships: [];
       };
       monthly_wearing_summary: {
         Row: {
@@ -210,6 +218,7 @@ export type Database = {
           session_count: number;
           total_minutes: number;
         };
+        Relationships: [];
       };
     };
     Functions: {

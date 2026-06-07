@@ -3,8 +3,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { calculateDurationMinutes, getReportDate } from "@/lib/date/utils";
+import type { Database } from "@/types/database";
 
-export async function updateSession(prevState: any, formData: FormData) {
+type ActionState = { error?: string; success?: boolean };
+type WearingSessionUpdate = Database["public"]["Tables"]["wearing_sessions"]["Update"];
+
+export async function updateSession(
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
   const supabase = await createClient();
 
   const {
@@ -48,7 +55,7 @@ export async function updateSession(prevState: any, formData: FormData) {
     return { error: "Forbidden" };
   }
 
-  let updatePayload: any = {
+  const updatePayload: WearingSessionUpdate = {
     start_at: startAt.toISOString(),
     report_date: reportDate,
     note: note,

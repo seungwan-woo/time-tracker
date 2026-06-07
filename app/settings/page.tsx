@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import BottomNav from "@/components/BottomNav";
 import { logout } from "@/actions/logout";
 
@@ -23,10 +24,18 @@ export default async function SettingsPage() {
 
   const { data: membership } = await supabase
     .from("family_members")
-    .select("*, families(*)")
+    .select("*")
     .eq("user_id", user.id)
     .limit(1)
     .single();
+
+  const { data: family } = membership
+    ? await supabase
+        .from("families")
+        .select("name")
+        .eq("id", membership.family_id)
+        .single()
+    : { data: null };
 
   return (
     <div className="min-h-screen pb-24 relative bg-background">
@@ -41,7 +50,14 @@ export default async function SettingsPage() {
         <section className="glass rounded-2xl p-5 flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
             {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+              <Image
+                src={profile.avatar_url}
+                alt="Profile"
+                width={56}
+                height={56}
+                className="w-full h-full object-cover"
+                unoptimized
+              />
             ) : (
               <span className="text-xl font-bold text-primary-light">
                 {profile?.display_name?.charAt(0) || user.email?.charAt(0)}
@@ -60,7 +76,7 @@ export default async function SettingsPage() {
           <div className="glass rounded-2xl overflow-hidden">
             <div className="p-4 border-b border-border flex justify-between items-center">
               <span className="text-white">가족 이름</span>
-              <span className="text-text-dim">{membership?.families?.name || "소속 없음"}</span>
+              <span className="text-text-dim">{family?.name || "소속 없음"}</span>
             </div>
             <div className="p-4 flex justify-between items-center">
               <span className="text-white">나의 역할</span>

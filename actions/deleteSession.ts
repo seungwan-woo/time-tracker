@@ -3,7 +3,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export async function deleteSession(prevState: any, formData: FormData) {
+type ActionState = { error?: string; success?: boolean };
+
+export async function deleteSession(
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
   const supabase = await createClient();
 
   const {

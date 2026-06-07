@@ -4,7 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { calculateDurationMinutes, getReportDate } from "@/lib/date/utils";
 
-export async function addManualSession(prevState: any, formData: FormData) {
+type ActionState = { error?: string; success?: boolean };
+
+export async function addManualSession(
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
   const supabase = await createClient();
 
   const {

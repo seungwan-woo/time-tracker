@@ -80,8 +80,6 @@ export default function SessionEditDialog({
   const [startAt, setStartAt] = useState(toDatetimeLocalString(defaultStart));
   const [endAt, setEndAt] = useState(defaultEnd ? toDatetimeLocalString(defaultEnd) : "");
   const [reportDate, setReportDate] = useState(defaultReportDate);
-  const [duration, setDuration] = useState(0);
-
   const action = isEdit ? updateSession : addManualSession;
   const [state, formAction] = useActionState(action, null);
   const [deleteState, deleteAction] = useActionState(deleteSession, null);
@@ -95,18 +93,15 @@ export default function SessionEditDialog({
     }
   }, [state, deleteState, onClose]);
 
-  // Update duration preview
-  useEffect(() => {
+  const duration = (() => {
     if (startAt && endAt) {
       const start = new Date(startAt);
       const end = new Date(endAt);
-      if (end > start) {
-        setDuration(calculateDurationMinutes(start, end));
-      } else {
-        setDuration(0);
-      }
+      return end > start ? calculateDurationMinutes(start, end) : 0;
     }
-  }, [startAt, endAt]);
+
+    return 0;
+  })();
 
   if (!isOpen) return null;
 

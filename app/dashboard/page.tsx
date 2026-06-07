@@ -3,6 +3,12 @@ import { redirect } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import ChildCard from "@/components/ChildCard";
 import { getTodayDateString, formatDateDisplay } from "@/lib/date/utils";
+import type { Database } from "@/types/database";
+
+type ActiveSession = Pick<
+  Database["public"]["Tables"]["wearing_sessions"]["Row"],
+  "id" | "child_id" | "start_at"
+>;
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -71,7 +77,7 @@ export default async function DashboardPage() {
     activeSessions?.reduce((acc, curr) => {
       acc[curr.child_id] = curr;
       return acc;
-    }, {} as Record<string, any>) || {};
+    }, {} as Record<string, ActiveSession>) || {};
 
   return (
     <div className="min-h-screen pb-24 relative">
