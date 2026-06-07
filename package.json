@@ -4,9 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "bash scripts/dev-local.sh",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
+    "supabase:reset": "npx supabase db reset",
+    "supabase:status": "npx supabase status",
+    "supabase:env": "bash scripts/print-local-env.sh"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
