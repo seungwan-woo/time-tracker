@@ -290,6 +290,9 @@ async function main() {
     `!Array.from(document.querySelectorAll('input[name="name"]')).some((input) => input.value === '명상')`,
     "third tracker deleted"
   );
+  await setValue(cdp, "input[name=confirmText]", "RESET");
+  await submitFormByInput(cdp, "input[name=confirmText]");
+  await waitFor(cdp, "document.body.innerText.includes('기록을 초기화했습니다.')", "data reset");
   await screenshot(cdp, "03-settings-edited");
 
   await setValue(cdp, "input[name=email]", memberEmail);
