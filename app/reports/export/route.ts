@@ -24,7 +24,7 @@ export async function GET() {
   }
 
   const monthStart = formatKST(startOfMonth(new Date()), "yyyy-MM-dd");
-  const [{ data: children }, { data: summaries }] = await Promise.all([
+  const [{ data: children }, { data: sessions }] = await Promise.all([
     supabase
       .from("children")
       .select("*")
@@ -32,11 +32,14 @@ export async function GET() {
       .eq("active", true)
       .order("display_order", { ascending: true }),
     supabase
-      .from("daily_wearing_summary")
-      .select("*")
+      .from("wearing_sessions")
+      .select("child_id, report_date, start_at, end_at, duration_minutes")
       .eq("family_id", membership.family_id)
+      .eq("status", "closed")
+      .is("deleted_at", null)
       .gte("report_date", monthStart)
-      .order("report_date", { ascending: true }),
+      .order("report_date", { ascending: true })
+      .order("start_at", { ascending: true }),
   ]);
 
   const csv = toCsv(
@@ -45,10 +48,12 @@ export async function GET() {
         id: child.id,
         name: child.name,
       })),
-      (summaries ?? []).map((summary) => ({
-        childId: summary.child_id,
-        reportDate: summary.report_date,
-        totalMinutes: summary.total_minutes,
+      (sessions ?? []).map((session) => ({
+        childId: session.child_id,
+        reportDate: session.report_date,
+        startAt: session.start_at,
+        endAt: session.end_at,
+        durationMinutes: session.duration_minutes ?? 0,
       }))
     )
   );

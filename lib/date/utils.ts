@@ -90,6 +90,26 @@ export function formatTimeRange(startAt: string, endAt: string | null): string {
 }
 
 /**
+ * Format a session end time for compact tabular displays.
+ */
+export function formatSessionEndTime(startAt: string, endAt: string | null): string {
+  if (!endAt) return "진행 중";
+
+  const startDate = formatKST(startAt, "yyyy-MM-dd");
+  const endDate = formatKST(endAt, "yyyy-MM-dd");
+  const endTime = formatKST(endAt, "HH:mm");
+
+  return startDate === endDate ? endTime : `익일 ${endTime}`;
+}
+
+/**
+ * Format a timestamp for CSV export in Asia/Seoul timezone.
+ */
+export function formatSessionDateTime(date: string): string {
+  return formatKST(date, "yyyy-MM-dd HH:mm");
+}
+
+/**
  * Calculate achievement percentage (capped at 100)
  */
 export function calculateAchievement(
