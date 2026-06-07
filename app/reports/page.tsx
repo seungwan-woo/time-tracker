@@ -2,96 +2,18 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import {
-  addDays,
-  endOfMonth,
   formatDuration,
   formatKST,
   startOfMonth,
 } from "@/lib/date/utils";
-import type { Child, DailyWearingSummary } from "@/types/database";
-
-type ChartPoint = {
-  dateStr: string;
-  label: string;
-  minutes: number;
-  percentage: number;
-};
-
-type CalendarCell = {
-  dateStr: string;
-  day: string;
-  isCurrentMonth: boolean;
-  totalMinutes: number;
-};
-
-function getSummaryKey(childId: string, dateStr: string): string {
-  return `${childId}:${dateStr}`;
-}
-
-function buildSummaryMap(
-  summaries: DailyWearingSummary[] | null
-): Map<string, number> {
-  return new Map(
-    (summaries ?? []).map((summary) => [
-      getSummaryKey(summary.child_id, summary.report_date),
-      summary.total_minutes,
-    ])
-  );
-}
-
-function getSummaryMinutes(
-  summaryMap: Map<string, number>,
-  childId: string,
-  dateStr: string
-): number {
-  return summaryMap.get(getSummaryKey(childId, dateStr)) ?? 0;
-}
-
-function buildWeeklyChartData(
-  child: Child,
-  summaryMap: Map<string, number>
-): ChartPoint[] {
-  return Array.from({ length: 7 }, (_, index) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (6 - index));
-    const dateStr = formatKST(d, "yyyy-MM-dd");
-    const minutes = getSummaryMinutes(summaryMap, child.id, dateStr);
-
-    return {
-      dateStr,
-      label: formatKST(d, "E"),
-      minutes,
-      percentage: Math.min((minutes / child.target_minutes_per_day) * 100, 100),
-    };
-  });
-}
-
-function buildCalendarCells(
-  children: Child[],
-  summaryMap: Map<string, number>
-): CalendarCell[] {
-  const monthStart = startOfMonth(new Date());
-  const monthEnd = endOfMonth(monthStart);
-  const leadingDays = monthStart.getDay();
-  const firstCellDate = addDays(monthStart, -leadingDays);
-  const totalCells = Math.ceil((leadingDays + monthEnd.getDate()) / 7) * 7;
-
-  return Array.from({ length: totalCells }, (_, index) => {
-    const date = addDays(firstCellDate, index);
-    const dateStr = formatKST(date, "yyyy-MM-dd");
-    const totalMinutes = children.reduce(
-      (sum, child) => sum + getSummaryMinutes(summaryMap, child.id, dateStr),
-      0
-    );
-
-    return {
-      dateStr,
-      day: formatKST(date, "d"),
-      isCurrentMonth: date.getMonth() === monthStart.getMonth(),
-      totalMinutes,
-    };
-  });
-}
+import {
+  buildCalendarCells,
+  buildSummaryMap,
+  buildWeeklyChartData,
+  sumCurrentMonthMinutes,
+  type DailySummaryInput,
+  type TrackerReportTarget,
+} from "@/lib/reports/summary";
 
 export default async function ReportsPage() {
   const supabase = await createClient();
@@ -151,12 +73,20 @@ export default async function ReportsPage() {
     .gte("report_date", startDateStr)
     .order("report_date", { ascending: true });
 
-  const summaryMap = buildSummaryMap(recentSummaries);
-  const calendarCells = buildCalendarCells(children, summaryMap);
-  const monthlyTotal = calendarCells.reduce(
-    (sum, cell) => sum + (cell.isCurrentMonth ? cell.totalMinutes : 0),
-    0
+  const reportTargets: TrackerReportTarget[] = children.map((child) => ({
+    id: child.id,
+    targetMinutesPerDay: child.target_minutes_per_day,
+  }));
+  const dailySummaries: DailySummaryInput[] = (recentSummaries ?? []).map(
+    (summary) => ({
+      childId: summary.child_id,
+      reportDate: summary.report_date,
+      totalMinutes: summary.total_minutes,
+    })
   );
+  const summaryMap = buildSummaryMap(dailySummaries);
+  const calendarCells = buildCalendarCells(reportTargets, summaryMap);
+  const monthlyTotal = sumCurrentMonthMinutes(calendarCells);
 
   return (
     <div className="min-h-screen pb-24 relative bg-background">
@@ -224,7 +154,13 @@ export default async function ReportsPage() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           {children.map((child) => {
-            const chartData = buildWeeklyChartData(child, summaryMap);
+            const chartData = buildWeeklyChartData(
+              {
+                id: child.id,
+                targetMinutesPerDay: child.target_minutes_per_day,
+              },
+              summaryMap
+            );
 
             const weekTotal = chartData.reduce((acc, curr) => acc + curr.minutes, 0);
             const weekAvg = Math.round(weekTotal / 7);

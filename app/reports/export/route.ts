@@ -1,47 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatKST, startOfMonth } from "@/lib/date/utils";
-import type { Child, DailyWearingSummary } from "@/types/database";
-
-type CsvRow = {
-  date: string;
-  trackerName: string;
-  minutes: number;
-  hours: string;
-};
-
-function escapeCsvCell(value: string | number): string {
-  const raw = String(value);
-  return /[",\n\r]/.test(raw) ? `"${raw.replaceAll('"', '""')}"` : raw;
-}
-
-function toCsv(rows: CsvRow[]): string {
-  const header = ["date", "tracker_name", "minutes", "hours"];
-  const body = rows.map((row) =>
-    [row.date, row.trackerName, row.minutes, row.hours]
-      .map(escapeCsvCell)
-      .join(",")
-  );
-
-  return [header.join(","), ...body].join("\n");
-}
-
-function buildRows(
-  children: Child[],
-  summaries: DailyWearingSummary[]
-): CsvRow[] {
-  const childNames = new Map(children.map((child) => [child.id, child.name]));
-
-  return summaries.map((summary) => {
-    const minutes = summary.total_minutes;
-
-    return {
-      date: summary.report_date,
-      trackerName: childNames.get(summary.child_id) ?? summary.child_id,
-      minutes,
-      hours: (minutes / 60).toFixed(2),
-    };
-  });
-}
+import { buildCsvRows, toCsv } from "@/lib/reports/csv";
 
 export async function GET() {
   const supabase = await createClient();
@@ -80,7 +39,19 @@ export async function GET() {
       .order("report_date", { ascending: true }),
   ]);
 
-  const csv = toCsv(buildRows(children ?? [], summaries ?? []));
+  const csv = toCsv(
+    buildCsvRows(
+      (children ?? []).map((child) => ({
+        id: child.id,
+        name: child.name,
+      })),
+      (summaries ?? []).map((summary) => ({
+        childId: summary.child_id,
+        reportDate: summary.report_date,
+        totalMinutes: summary.total_minutes,
+      }))
+    )
+  );
   const filename = `time-tracker-${monthStart}.csv`;
 
   return new Response(csv, {

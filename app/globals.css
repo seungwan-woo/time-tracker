@@ -31,7 +31,13 @@
 }
 
 * {
+  box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+}
+
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
@@ -53,6 +59,10 @@ body {
   margin-inline: auto;
   display: flex;
   align-items: center;
+}
+
+.auth-panel {
+  width: min(18rem, calc(100vw - 4rem));
 }
 
 /* Scrollbar styling */
