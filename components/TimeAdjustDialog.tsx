@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
+import { toDatetimeLocalString } from "@/lib/date/utils";
 
 interface TimeAdjustDialogProps {
   isOpen: boolean;
@@ -17,16 +18,17 @@ export default function TimeAdjustDialog({
   onClose,
   onConfirm,
   title,
-  defaultDate = new Date(),
+  defaultDate,
   isPending = false,
 }: TimeAdjustDialogProps) {
-  const [selectedDate, setSelectedDate] = useState<Date>(defaultDate);
+  const [selectedValue, setSelectedValue] = useState(() =>
+    toDatetimeLocalString(defaultDate ?? new Date())
+  );
 
   if (!isOpen) return null;
 
-  const adjustMinutes = (mins: number) => {
-    setSelectedDate(new Date(selectedDate.getTime() + mins * 60000));
-  };
+  const selectedDate = new Date(selectedValue);
+  const isValidDate = !Number.isNaN(selectedDate.getTime());
 
   return (
     <>
@@ -42,22 +44,24 @@ export default function TimeAdjustDialog({
           
           <div className="text-center mb-8">
             <div className="text-4xl font-mono font-bold text-primary-light mb-2">
-              {format(selectedDate, "HH:mm")}
+              {isValidDate ? format(selectedDate, "HH:mm") : "--:--"}
             </div>
             <div className="text-sm text-text-dim">
-              {format(selectedDate, "yyyy년 MM월 dd일")}
+              {isValidDate ? format(selectedDate, "yyyy년 MM월 dd일") : "시간을 선택해주세요"}
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 mb-8">
-            <button onClick={() => adjustMinutes(-30)} className="bg-surface border border-border py-2 rounded-xl text-sm">-30분</button>
-            <button onClick={() => adjustMinutes(-10)} className="bg-surface border border-border py-2 rounded-xl text-sm">-10분</button>
-            <button onClick={() => adjustMinutes(-5)} className="bg-surface border border-border py-2 rounded-xl text-sm">-5분</button>
-            <button onClick={() => adjustMinutes(-1)} className="bg-surface border border-border py-2 rounded-xl text-sm">-1분</button>
-            <button onClick={() => adjustMinutes(1)} className="bg-surface border border-border py-2 rounded-xl text-sm">+1분</button>
-            <button onClick={() => adjustMinutes(5)} className="bg-surface border border-border py-2 rounded-xl text-sm">+5분</button>
-            <button onClick={() => adjustMinutes(10)} className="bg-surface border border-border py-2 rounded-xl text-sm">+10분</button>
-            <button onClick={() => adjustMinutes(30)} className="bg-surface border border-border py-2 rounded-xl text-sm">+30분</button>
+          <div className="mb-8 space-y-2">
+            <label className="text-sm text-text-dim ml-1" htmlFor="wearing-time">
+              착용 시각
+            </label>
+            <input
+              id="wearing-time"
+              type="datetime-local"
+              value={selectedValue}
+              onChange={(event) => setSelectedValue(event.target.value)}
+              className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
           </div>
 
           <div className="flex gap-3">
@@ -69,8 +73,12 @@ export default function TimeAdjustDialog({
               취소
             </button>
             <button
-              onClick={() => onConfirm(selectedDate)}
-              disabled={isPending}
+              onClick={() => {
+                if (isValidDate) {
+                  onConfirm(selectedDate);
+                }
+              }}
+              disabled={isPending || !isValidDate}
               className="flex-1 bg-primary text-white font-bold py-3 px-4 rounded-xl hover:bg-primary-light active:scale-[0.98] disabled:opacity-70 flex justify-center items-center"
             >
               {isPending ? (

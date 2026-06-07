@@ -191,21 +191,25 @@ export default function ChildCard({
         </div>
       </div>
 
-      <TimeAdjustDialog
-        isOpen={showStartDialog}
-        onClose={() => setShowStartDialog(false)}
-        onConfirm={handleStart}
-        title="시작 시각 확인"
-        isPending={isPending}
-      />
+      {showStartDialog && (
+        <TimeAdjustDialog
+          isOpen={showStartDialog}
+          onClose={() => setShowStartDialog(false)}
+          onConfirm={handleStart}
+          title="시작 시각 선택"
+          isPending={isPending}
+        />
+      )}
 
-      <TimeAdjustDialog
-        isOpen={showEndDialog}
-        onClose={() => setShowEndDialog(false)}
-        onConfirm={handleEnd}
-        title="종료 시각 확인"
-        isPending={isPending}
-      />
+      {showEndDialog && (
+        <TimeAdjustDialog
+          isOpen={showEndDialog}
+          onClose={() => setShowEndDialog(false)}
+          onConfirm={handleEnd}
+          title="종료 시각 선택"
+          isPending={isPending}
+        />
+      )}
 
       <SessionEditDialog
         isOpen={showAddSessionDialog}
