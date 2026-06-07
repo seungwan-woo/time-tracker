@@ -25,25 +25,9 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-background">
-      {/* Animated background gradients */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full opacity-20 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, oklch(0.55 0.22 250) 0%, transparent 70%)",
-          }}
-        />
-        <div
-          className="absolute -bottom-1/2 -right-1/2 w-full h-full rounded-full opacity-15 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, oklch(0.60 0.22 280) 0%, transparent 70%)",
-          }}
-        />
-      </div>
+      <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-sm flex flex-col items-center gap-8">
+      <div className="relative z-10 w-[min(20rem,calc(100vw-3rem))] sm:w-full sm:max-w-sm flex flex-col items-center gap-8">
         {/* Logo / Icon */}
         <div className="w-20 h-20 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
           <svg

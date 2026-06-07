@@ -49,7 +49,7 @@ export default async function ChildDetailPage(props: { params: Promise<{ childId
     <div className="min-h-screen pb-24 relative bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-md mx-auto px-4 h-14 flex items-center gap-3">
+        <div className="app-header-inner gap-3">
           <Link href="/dashboard" className="p-2 -ml-2 active:scale-95 text-text-dim hover:text-white">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -61,8 +61,8 @@ export default async function ChildDetailPage(props: { params: Promise<{ childId
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-4 pt-6 space-y-6">
-        <div className="glass rounded-2xl p-6 text-center">
+      <main className="app-container grid gap-6 pt-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
+        <div className="glass rounded-2xl p-6 text-center lg:sticky lg:top-20 lg:self-start">
           <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-2xl font-bold text-primary-light">
               {child.name.charAt(0)}
@@ -74,7 +74,7 @@ export default async function ChildDetailPage(props: { params: Promise<{ childId
           </p>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <h3 className="text-lg font-bold mb-4 px-2">최근 기록</h3>
           
           <div className="space-y-3">

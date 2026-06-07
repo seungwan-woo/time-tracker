@@ -84,7 +84,7 @@ export default async function DashboardPage() {
       {/* Background decoration */}
       <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none -z-10" />
 
-      <main className="max-w-md mx-auto px-4 pt-6">
+      <main className="app-container pt-6">
         {/* Header */}
         <header className="mb-8">
           <div className="flex items-center justify-between mb-2">
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
         </header>
 
         {/* Tracker Cards */}
-        <div className="space-y-6">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {children?.map((child) => (
             <ChildCard
               key={child.id}
