@@ -54,6 +54,20 @@ export async function submitOnboarding(
 
   const data = validatedFields.data;
 
+  // Ensure the profile row exists before creating rows that reference it.
+  const { error: profileError } = await supabase.from("profiles").upsert({
+    id: user.id,
+    display_name:
+      user.user_metadata?.full_name || user.user_metadata?.name || null,
+    email: user.email,
+    avatar_url: user.user_metadata?.avatar_url || null,
+  });
+
+  if (profileError) {
+    console.error("Profile upsert error:", profileError);
+    return { error: "사용자 프로필 준비 중 오류가 발생했습니다." };
+  }
+
   // 3. Create family
   const { data: family, error: familyError } = await supabase
     .from("families")
