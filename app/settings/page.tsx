@@ -76,14 +76,14 @@ export default async function SettingsPage() {
   return (
     <div className="min-h-screen pb-24 relative bg-background">
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-md mx-auto px-4 h-14 flex items-center">
+        <div className="app-header-inner">
           <h1 className="text-xl font-bold">설정</h1>
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-4 pt-6 space-y-6">
+      <main className="app-container grid gap-6 pt-6 lg:grid-cols-2">
         {/* Profile Section */}
-        <section className="glass rounded-2xl p-5 flex items-center gap-4">
+        <section className="glass rounded-2xl p-5 flex items-center gap-4 lg:col-span-2">
           <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
             {profile?.avatar_url ? (
               <Image
@@ -210,7 +210,7 @@ export default async function SettingsPage() {
         </section>
 
         {/* Actions */}
-        <section className="pt-4">
+        <section className="pt-4 lg:col-span-2">
           <form action={logout}>
             <button
               type="submit"

@@ -42,6 +42,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.app-container {
+  width: min(calc(100% - 2rem), 72rem);
+  margin-inline: auto;
+}
+
+.app-header-inner {
+  width: min(calc(100% - 2rem), 72rem);
+  height: 3.5rem;
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 4px;

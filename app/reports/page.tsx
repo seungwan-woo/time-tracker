@@ -161,12 +161,12 @@ export default async function ReportsPage() {
   return (
     <div className="min-h-screen pb-24 relative bg-background">
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-md mx-auto px-4 h-14 flex items-center">
+        <div className="app-header-inner">
           <h1 className="text-xl font-bold">시간 리포트</h1>
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-4 pt-6 space-y-8">
+      <main className="app-container pt-6 space-y-8">
         <section className="glass rounded-3xl p-5">
           <div className="flex items-start justify-between gap-4 mb-5">
             <div>
@@ -188,14 +188,14 @@ export default async function ReportsPage() {
               <span key={day}>{day}</span>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
             {calendarCells.map((cell) => {
               const hasMinutes = cell.totalMinutes > 0;
 
               return (
                 <div
                   key={cell.dateStr}
-                  className={`min-h-16 rounded-lg border p-1.5 ${
+                  className={`min-h-16 rounded-lg border p-1.5 sm:min-h-20 sm:p-2 ${
                     cell.isCurrentMonth
                       ? "border-border bg-surface/50"
                       : "border-transparent bg-transparent opacity-40"
@@ -222,14 +222,15 @@ export default async function ReportsPage() {
           </a>
         </section>
 
-        {children.map((child) => {
-          const chartData = buildWeeklyChartData(child, summaryMap);
+        <div className="grid gap-6 lg:grid-cols-2">
+          {children.map((child) => {
+            const chartData = buildWeeklyChartData(child, summaryMap);
 
-          const weekTotal = chartData.reduce((acc, curr) => acc + curr.minutes, 0);
-          const weekAvg = Math.round(weekTotal / 7);
+            const weekTotal = chartData.reduce((acc, curr) => acc + curr.minutes, 0);
+            const weekAvg = Math.round(weekTotal / 7);
 
-          return (
-            <div key={child.id} className="glass rounded-3xl p-6">
+            return (
+              <div key={child.id} className="glass rounded-3xl p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-bold flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-primary" />
@@ -283,9 +284,10 @@ export default async function ReportsPage() {
                   <p className="font-bold">{formatDuration(weekTotal)}</p>
                 </div>
               </div>
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
       </main>
 
       <BottomNav />

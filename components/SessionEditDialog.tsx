@@ -114,10 +114,11 @@ export default function SessionEditDialog({
       />
       
       {/* Dialog */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 glass-elevated rounded-t-3xl border-t border-white/10 animate-slide-up max-h-[90vh] overflow-y-auto pb-safe">
-        <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mt-4 mb-2" />
-        
-        <div className="p-6">
+      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center sm:bottom-6 sm:px-4">
+        <div className="w-full max-w-lg glass-elevated rounded-t-3xl border-t border-white/10 animate-slide-up max-h-[90vh] overflow-y-auto pb-safe sm:rounded-3xl sm:border">
+          <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mt-4 mb-2" />
+
+          <div className="p-6">
           <h2 className="text-xl font-bold mb-6">
             {isEdit ? "기록 수정" : "세션 추가"}
           </h2>
@@ -236,6 +237,7 @@ export default function SessionEditDialog({
               )}
             </div>
           )}
+          </div>
         </div>
       </div>
     </>

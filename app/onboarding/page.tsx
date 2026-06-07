@@ -27,18 +27,9 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen flex flex-col p-6 relative overflow-y-auto pb-safe">
-      {/* Background gradients */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div
-          className="absolute -top-1/4 -right-1/4 w-full h-full rounded-full opacity-20 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, oklch(0.55 0.22 250) 0%, transparent 70%)",
-          }}
-        />
-      </div>
+      <div className="fixed inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none -z-10" />
 
-      <div className="flex-1 w-full max-w-md mx-auto pt-8 pb-12 flex flex-col">
+      <div className="flex-1 w-full max-w-5xl mx-auto pt-8 pb-12 flex flex-col">
         <div className="space-y-2 mb-10">
           <h1 className="text-3xl font-bold tracking-tight">환영합니다!</h1>
           <p className="text-text-muted">
@@ -46,7 +37,7 @@ export default function OnboardingPage() {
           </p>
         </div>
 
-        <form action={formAction} className="space-y-6 flex-1 flex flex-col">
+        <form action={formAction} className="grid gap-6 flex-1 sm:grid-cols-2">
           {state?.error && (
             <div className="bg-danger/10 border border-danger/20 rounded-xl p-4 text-center">
               <p className="text-danger text-sm">{state.error}</p>
@@ -54,7 +45,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Family Section */}
-          <div className="glass rounded-2xl p-6 space-y-4">
+          <div className="glass rounded-2xl p-6 space-y-4 sm:col-span-2">
             <h2 className="text-xl font-semibold">1. 가족 공간 이름</h2>
             <div>
               <label htmlFor="familyName" className="block text-sm text-text-dim mb-2">
@@ -152,7 +143,7 @@ export default function OnboardingPage() {
             </div>
           </div>
 
-          <div className="mt-auto pt-4">
+          <div className="mt-auto pt-4 sm:col-span-2">
             <SubmitButton />
           </div>
         </form>
