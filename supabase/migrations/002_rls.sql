@@ -108,4 +108,5 @@ with check (is_family_member(family_id));
 
 create policy "authenticated users can update invite codes (redeem)"
 on invite_codes for update
-using (auth.role() = 'authenticated');
+to authenticated
+using (true);

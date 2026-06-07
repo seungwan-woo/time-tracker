@@ -9,6 +9,7 @@
     "start": "next start",
     "test": "rm -rf .test-dist && tsc -p tsconfig.test.json && node --test .test-dist/tests/*.test.js",
     "lint": "eslint",
+    "verify:local-auth": "node scripts/verify-local-auth.mjs",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:reset": "npx supabase db reset",
