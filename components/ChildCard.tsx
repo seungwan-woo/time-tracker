@@ -29,6 +29,7 @@ export default function ChildCard({
 }: ChildCardProps) {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [isPending, setIsPending] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const [showStartDialog, setShowStartDialog] = useState(false);
   const [showEndDialog, setShowEndDialog] = useState(false);
@@ -62,9 +63,14 @@ export default function ChildCard({
 
   const handleStart = async (date: Date) => {
     setIsPending(true);
+    setActionError(null);
     try {
       await startWearing(child.id, date.toISOString());
       setShowStartDialog(false);
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : "착용 시작에 실패했습니다."
+      );
     } finally {
       setIsPending(false);
     }
@@ -73,9 +79,14 @@ export default function ChildCard({
   const handleEnd = async (date: Date) => {
     if (!activeSession) return;
     setIsPending(true);
+    setActionError(null);
     try {
       await endWearing(activeSession.id, date.toISOString());
       setShowEndDialog(false);
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : "착용 종료에 실패했습니다."
+      );
     } finally {
       setIsPending(false);
     }
@@ -143,6 +154,12 @@ export default function ChildCard({
             </div>
           )}
 
+          {actionError && (
+            <div className="mb-4 bg-danger/10 border border-danger/20 rounded-xl p-3">
+              <p className="text-danger text-sm">{actionError}</p>
+            </div>
+          )}
+
           <div className="flex gap-2">
             {activeSession ? (
               <button
@@ -207,6 +224,21 @@ export default function ChildCard({
           onClose={() => setShowEndDialog(false)}
           onConfirm={handleEnd}
           title="종료 시각 선택"
+          defaultDate={
+            activeSession
+              ? new Date(
+                  Math.max(
+                    nowMs,
+                    new Date(activeSession.start_at).getTime() + 60000
+                  )
+                )
+              : undefined
+          }
+          minDate={
+            activeSession
+              ? new Date(new Date(activeSession.start_at).getTime() + 60000)
+              : undefined
+          }
           isPending={isPending}
         />
       )}

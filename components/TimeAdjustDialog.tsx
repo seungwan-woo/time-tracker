@@ -10,6 +10,7 @@ interface TimeAdjustDialogProps {
   onConfirm: (date: Date) => void;
   title: string;
   defaultDate?: Date;
+  minDate?: Date;
   isPending?: boolean;
 }
 
@@ -19,6 +20,7 @@ export default function TimeAdjustDialog({
   onConfirm,
   title,
   defaultDate,
+  minDate,
   isPending = false,
 }: TimeAdjustDialogProps) {
   const [selectedValue, setSelectedValue] = useState(() =>
@@ -29,6 +31,8 @@ export default function TimeAdjustDialog({
 
   const selectedDate = new Date(selectedValue);
   const isValidDate = !Number.isNaN(selectedDate.getTime());
+  const isAfterMinDate = !minDate || (isValidDate && selectedDate >= minDate);
+  const canConfirm = isValidDate && isAfterMinDate;
 
   return (
     <>
@@ -59,9 +63,15 @@ export default function TimeAdjustDialog({
               id="wearing-time"
               type="datetime-local"
               value={selectedValue}
+              min={minDate ? toDatetimeLocalString(minDate) : undefined}
               onChange={(event) => setSelectedValue(event.target.value)}
               className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             />
+            {!isAfterMinDate && (
+              <p className="text-danger text-sm px-1">
+                시작 시각보다 늦은 시간을 선택해주세요.
+              </p>
+            )}
           </div>
 
           <div className="flex gap-3">
@@ -74,11 +84,11 @@ export default function TimeAdjustDialog({
             </button>
             <button
               onClick={() => {
-                if (isValidDate) {
+                if (canConfirm) {
                   onConfirm(selectedDate);
                 }
               }}
-              disabled={isPending || !isValidDate}
+              disabled={isPending || !canConfirm}
               className="flex-1 bg-primary text-white font-bold py-3 px-4 rounded-xl hover:bg-primary-light active:scale-[0.98] disabled:opacity-70 flex justify-center items-center"
             >
               {isPending ? (
