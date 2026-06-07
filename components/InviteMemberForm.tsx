@@ -20,6 +20,7 @@ function SubmitButton() {
 
 export default function InviteMemberForm() {
   const [state, formAction] = useActionState(createInvite, null);
+  const inviteUrl = state?.inviteUrl;
 
   return (
     <div className="space-y-3">
@@ -40,9 +41,9 @@ export default function InviteMemberForm() {
         </div>
       )}
 
-      {state?.inviteUrl && (
+      {inviteUrl && (
         <div className="bg-surface border border-border rounded-xl p-3 space-y-3">
-          <p className="text-xs text-text-dim break-all">{state.inviteUrl}</p>
+          <p className="text-xs text-text-dim break-all">{inviteUrl}</p>
           <div className="grid grid-cols-2 gap-2">
             <a
               href={state.mailtoUrl}
@@ -52,7 +53,7 @@ export default function InviteMemberForm() {
             </a>
             <button
               type="button"
-              onClick={() => navigator.clipboard.writeText(state.inviteUrl!)}
+              onClick={() => navigator.clipboard.writeText(inviteUrl)}
               className="bg-surface-elevated border border-border text-white font-bold py-2.5 px-3 rounded-lg active:scale-[0.98] transition-all"
             >
               링크 복사
