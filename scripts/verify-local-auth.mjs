@@ -5,6 +5,7 @@ const appOrigin = "http://localhost:3000";
 const cdpOrigin = "http://127.0.0.1:9222";
 const outDir = "/tmp/time-tracker-cdp-shots";
 
+fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
 
 async function getPageWebSocketUrl() {
@@ -152,6 +153,70 @@ async function clickText(cdp, text) {
   }
 }
 
+async function submitFormByInput(cdp, selector) {
+  const didSubmit = await evaluate(
+    cdp,
+    `(() => {
+      const input = document.querySelector(${JSON.stringify(selector)});
+      const form = input?.form;
+      if (!input || !form) return false;
+      form.requestSubmit();
+      return true;
+    })()`
+  );
+
+  if (!didSubmit) {
+    throw new Error(`Form not found for input: ${selector}`);
+  }
+}
+
+async function fillAddTrackerForm(cdp, name, targetMinutes) {
+  const didFill = await evaluate(
+    cdp,
+    `(() => {
+      const forms = Array.from(document.querySelectorAll("form"));
+      const form = forms.find((node) => node.textContent?.includes("대상 추가"));
+      if (!form) return false;
+      const nameInput = form.querySelector('input[name="name"]');
+      const targetInput = form.querySelector('input[name="targetMinutes"]');
+      if (!nameInput || !targetInput) return false;
+      nameInput.value = ${JSON.stringify(name)};
+      targetInput.value = ${JSON.stringify(targetMinutes)};
+      nameInput.dispatchEvent(new Event("input", { bubbles: true }));
+      targetInput.dispatchEvent(new Event("input", { bubbles: true }));
+      form.requestSubmit();
+      return true;
+    })()`
+  );
+
+  if (!didFill) {
+    throw new Error("Add tracker form not found.");
+  }
+}
+
+async function deactivateTrackerByName(cdp, trackerName) {
+  const didClick = await evaluate(
+    cdp,
+    `(() => {
+      const forms = Array.from(document.querySelectorAll("form"));
+      const form = forms.find((node) => {
+        const input = node.querySelector('input[name="name"]');
+        return input?.value === ${JSON.stringify(trackerName)};
+      });
+      const deleteButton = Array.from(form?.querySelectorAll("button") ?? []).find(
+        (button) => button.textContent?.includes("삭제")
+      );
+      if (!deleteButton) return false;
+      deleteButton.click();
+      return true;
+    })()`
+  );
+
+  if (!didClick) {
+    throw new Error(`Delete button not found for tracker: ${trackerName}`);
+  }
+}
+
 async function screenshot(cdp, name) {
   const shot = await cdp.send("Page.captureScreenshot", {
     format: "png",
@@ -202,6 +267,31 @@ async function main() {
 
   await navigate(cdp, `${appOrigin}/settings`);
   await waitFor(cdp, "document.body.innerText.includes('공동 관리')", "settings");
+  await setValue(cdp, "input[name=displayName]", "QA Owner");
+  await submitFormByInput(cdp, "input[name=displayName]");
+  await waitFor(cdp, "document.body.innerText.includes('프로필을 저장했습니다.')", "profile updated");
+  await setValue(cdp, "input[name=familyName]", "Local QA Family Updated");
+  await submitFormByInput(cdp, "input[name=familyName]");
+  await waitFor(cdp, "document.body.innerText.includes('공간 이름을 저장했습니다.')", "family updated");
+  await fillAddTrackerForm(cdp, "명상", "60");
+  await waitFor(
+    cdp,
+    `Array.from(document.querySelectorAll('input[name="name"]')).some((input) => input.value === '명상')`,
+    "third tracker added"
+  );
+  await waitFor(
+    cdp,
+    "document.body.innerText.includes('대상은 최대 3개까지 관리할 수 있습니다.')",
+    "max tracker message"
+  );
+  await deactivateTrackerByName(cdp, "명상");
+  await waitFor(
+    cdp,
+    `!Array.from(document.querySelectorAll('input[name="name"]')).some((input) => input.value === '명상')`,
+    "third tracker deleted"
+  );
+  await screenshot(cdp, "03-settings-edited");
+
   await setValue(cdp, "input[name=email]", memberEmail);
   await clickText(cdp, "초대 링크 만들기");
   const inviteUrl = await waitFor(
@@ -213,7 +303,7 @@ async function main() {
     "invite URL",
     20_000
   );
-  await screenshot(cdp, "03-settings-invite");
+  await screenshot(cdp, "04-settings-invite");
 
   await cdp.send("Network.clearBrowserCookies");
   await cdp.send("Storage.clearDataForOrigin", {
@@ -232,7 +322,7 @@ async function main() {
   await setValue(cdp, "input[name=password]", password);
   await clickText(cdp, "가입");
   await waitFor(cdp, "location.pathname.startsWith('/invite/')", "member invite page", 20_000);
-  await screenshot(cdp, "04-invite-member");
+  await screenshot(cdp, "05-invite-member");
   await clickText(cdp, "참여하기");
   await waitFor(cdp, "location.pathname === '/dashboard'", "member dashboard", 20_000);
   await waitFor(
@@ -240,7 +330,7 @@ async function main() {
     "document.body.innerText.includes('운동') && document.body.innerText.includes('독서')",
     "member sees family trackers"
   );
-  await screenshot(cdp, "05-dashboard-member");
+  await screenshot(cdp, "06-dashboard-member");
 
   const finalUrl = await evaluate(cdp, "location.href");
   cdp.close();
