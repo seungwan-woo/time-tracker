@@ -1,7 +1,9 @@
 import {
   addDays,
   endOfMonth,
+  formatDurationCompact,
   formatKST,
+  formatSessionEndTime,
   startOfMonth,
 } from "../date/utils";
 
@@ -17,6 +19,7 @@ export type CalendarCell = {
   day: string;
   isCurrentMonth: boolean;
   totalMinutes: number;
+  sessions: CalendarSession[];
 };
 
 export type TrackerReportTarget = {
@@ -30,7 +33,30 @@ export type DailySummaryInput = {
   totalMinutes: number;
 };
 
+export type DailySessionInput = {
+  childId: string;
+  reportDate: string;
+  startAt: string;
+  endAt: string | null;
+  durationMinutes: number;
+};
+
+export type SessionReportTarget = {
+  id: string;
+  name: string;
+};
+
+export type CalendarSession = {
+  childId: string;
+  childName: string;
+  startTime: string;
+  endTime: string;
+  duration: string;
+  durationMinutes: number;
+};
+
 type SummaryMap = ReadonlyMap<string, number>;
+type SessionMap = ReadonlyMap<string, CalendarSession[]>;
 
 function getSummaryKey(childId: string, dateStr: string): string {
   return `${childId}:${dateStr}`;
@@ -43,6 +69,38 @@ export function buildSummaryMap(summaries: DailySummaryInput[]): SummaryMap {
       summary.totalMinutes,
     ])
   );
+}
+
+export function buildSessionMap(
+  children: SessionReportTarget[],
+  sessions: DailySessionInput[]
+): SessionMap {
+  const childNames = new Map(children.map((child) => [child.id, child.name]));
+  const entries = new Map<string, CalendarSession[]>();
+
+  for (const session of sessions) {
+    const dateSessions = entries.get(session.reportDate) ?? [];
+    dateSessions.push({
+      childId: session.childId,
+      childName: childNames.get(session.childId) ?? session.childId,
+      startTime: formatKST(session.startAt, "HH:mm"),
+      endTime: formatSessionEndTime(session.startAt, session.endAt),
+      duration: formatDurationCompact(session.durationMinutes),
+      durationMinutes: session.durationMinutes,
+    });
+    entries.set(session.reportDate, dateSessions);
+  }
+
+  for (const [dateStr, dateSessions] of entries) {
+    entries.set(
+      dateStr,
+      [...dateSessions].sort((left, right) =>
+        left.startTime.localeCompare(right.startTime)
+      )
+    );
+  }
+
+  return entries;
 }
 
 export function getSummaryMinutes(
@@ -78,6 +136,7 @@ export function buildWeeklyChartData(
 export function buildCalendarCells(
   children: TrackerReportTarget[],
   summaryMap: SummaryMap,
+  sessionMap: SessionMap = new Map(),
   today: Date = new Date()
 ): CalendarCell[] {
   const monthStart = startOfMonth(today);
@@ -99,6 +158,7 @@ export function buildCalendarCells(
       day: formatKST(date, "d"),
       isCurrentMonth: date.getMonth() === monthStart.getMonth(),
       totalMinutes,
+      sessions: sessionMap.get(dateStr) ?? [],
     };
   });
 }

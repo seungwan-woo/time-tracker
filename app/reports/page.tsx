@@ -1,22 +1,36 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import {
   formatDuration,
+  formatDurationCompact,
   formatKST,
   startOfMonth,
 } from "@/lib/date/utils";
 import {
   buildCalendarCells,
+  buildSessionMap,
   buildSummaryMap,
   buildWeeklyChartData,
+  type DailySessionInput,
   sumCurrentMonthMinutes,
   type DailySummaryInput,
+  type SessionReportTarget,
   type TrackerReportTarget,
 } from "@/lib/reports/summary";
 
-export default async function ReportsPage() {
+type ReportsPageProps = {
+  searchParams: Promise<{ view?: string | string[] | undefined }>;
+};
+
+export default async function ReportsPage(props: ReportsPageProps) {
   const supabase = await createClient();
+  const searchParams = await props.searchParams;
+  const viewParam = Array.isArray(searchParams.view)
+    ? searchParams.view[0]
+    : searchParams.view;
+  const calendarView = viewParam === "sessions" ? "sessions" : "duration";
 
   const {
     data: { user },
@@ -66,16 +80,31 @@ export default async function ReportsPage() {
       ? monthStartStr
       : formatKST(sevenDaysAgo, "yyyy-MM-dd");
 
-  const { data: recentSummaries } = await supabase
-    .from("daily_wearing_summary")
-    .select("*")
-    .eq("family_id", familyId)
-    .gte("report_date", startDateStr)
-    .order("report_date", { ascending: true });
+  const [{ data: recentSummaries }, { data: monthSessions }] = await Promise.all([
+    supabase
+      .from("daily_wearing_summary")
+      .select("*")
+      .eq("family_id", familyId)
+      .gte("report_date", startDateStr)
+      .order("report_date", { ascending: true }),
+    supabase
+      .from("wearing_sessions")
+      .select("child_id, report_date, start_at, end_at, duration_minutes")
+      .eq("family_id", familyId)
+      .eq("status", "closed")
+      .is("deleted_at", null)
+      .gte("report_date", monthStartStr)
+      .order("report_date", { ascending: true })
+      .order("start_at", { ascending: true }),
+  ]);
 
   const reportTargets: TrackerReportTarget[] = children.map((child) => ({
     id: child.id,
     targetMinutesPerDay: child.target_minutes_per_day,
+  }));
+  const sessionTargets: SessionReportTarget[] = children.map((child) => ({
+    id: child.id,
+    name: child.name,
   }));
   const dailySummaries: DailySummaryInput[] = (recentSummaries ?? []).map(
     (summary) => ({
@@ -84,8 +113,16 @@ export default async function ReportsPage() {
       totalMinutes: summary.total_minutes,
     })
   );
+  const dailySessions: DailySessionInput[] = (monthSessions ?? []).map((session) => ({
+    childId: session.child_id,
+    reportDate: session.report_date,
+    startAt: session.start_at,
+    endAt: session.end_at,
+    durationMinutes: session.duration_minutes ?? 0,
+  }));
   const summaryMap = buildSummaryMap(dailySummaries);
-  const calendarCells = buildCalendarCells(reportTargets, summaryMap);
+  const sessionMap = buildSessionMap(sessionTargets, dailySessions);
+  const calendarCells = buildCalendarCells(reportTargets, summaryMap, sessionMap);
   const monthlyTotal = sumCurrentMonthMinutes(calendarCells);
 
   return (
@@ -112,6 +149,30 @@ export default async function ReportsPage() {
               </p>
             </div>
           </div>
+          <div className="mb-4 flex justify-end">
+            <div className="inline-flex rounded-xl border border-border bg-surface-elevated p-1 text-xs">
+              <Link
+                href="/reports"
+                className={`rounded-lg px-3 py-1.5 transition-colors ${
+                  calendarView === "duration"
+                    ? "bg-primary text-white"
+                    : "text-text-dim hover:text-white"
+                }`}
+              >
+                지속 시간
+              </Link>
+              <Link
+                href="/reports?view=sessions"
+                className={`rounded-lg px-3 py-1.5 transition-colors ${
+                  calendarView === "sessions"
+                    ? "bg-primary text-white"
+                    : "text-text-dim hover:text-white"
+                }`}
+              >
+                시작/종료/지속
+              </Link>
+            </div>
+          </div>
 
           <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-text-dim mb-2">
             {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
@@ -125,18 +186,49 @@ export default async function ReportsPage() {
               return (
                 <div
                   key={cell.dateStr}
-                  className={`min-h-16 rounded-lg border p-1.5 sm:min-h-20 sm:p-2 ${
+                  className={`rounded-lg border p-1.5 sm:p-2 ${
+                    calendarView === "sessions"
+                      ? "min-h-28 sm:min-h-32"
+                      : "min-h-16 sm:min-h-20"
+                  } ${
                     cell.isCurrentMonth
                       ? "border-border bg-surface/50"
                       : "border-transparent bg-transparent opacity-40"
                   }`}
                 >
                   <div className="text-xs text-text-muted">{cell.day}</div>
-                  {hasMinutes && (
+                  {hasMinutes && calendarView === "duration" && (
                     <div className="mt-1 rounded-md bg-primary/15 px-1 py-1 text-center">
                       <span className="text-[10px] font-bold text-primary-light">
                         {Math.round(cell.totalMinutes / 60)}h
                       </span>
+                    </div>
+                  )}
+                  {hasMinutes && calendarView === "sessions" && (
+                    <div className="mt-1 space-y-1">
+                      {cell.sessions.slice(0, 3).map((session, index) => (
+                        <div
+                          key={`${cell.dateStr}-${session.childId}-${session.startTime}-${index}`}
+                          className="rounded-md bg-primary/12 px-1.5 py-1 text-[9px] leading-tight text-primary-light"
+                        >
+                          <div className="truncate font-semibold text-white">
+                            {session.childName}
+                          </div>
+                          <div className="mt-0.5 grid grid-cols-[1fr_1fr_auto] gap-1 font-mono">
+                            <span>{session.startTime}</span>
+                            <span>{session.endTime}</span>
+                            <span className="text-right">{session.duration}</span>
+                          </div>
+                        </div>
+                      ))}
+                      {cell.sessions.length > 3 && (
+                        <div className="text-[9px] text-text-dim">
+                          +{cell.sessions.length - 3}건 더 있음
+                        </div>
+                      )}
+                      <div className="pt-0.5 text-right text-[9px] font-semibold text-primary-light">
+                        합계 {formatDurationCompact(cell.totalMinutes)}
+                      </div>
                     </div>
                   )}
                 </div>

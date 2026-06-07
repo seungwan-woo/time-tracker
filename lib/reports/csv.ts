@@ -1,8 +1,15 @@
+import {
+  formatDuration,
+  formatSessionDateTime,
+} from "../date/utils";
+
 export type CsvRow = {
   date: string;
   trackerName: string;
+  startAt: string;
+  endAt: string;
+  duration: string;
   minutes: number;
-  hours: string;
 };
 
 export type CsvTracker = {
@@ -10,10 +17,12 @@ export type CsvTracker = {
   name: string;
 };
 
-export type CsvSummary = {
+export type CsvSession = {
   childId: string;
   reportDate: string;
-  totalMinutes: number;
+  startAt: string;
+  endAt: string | null;
+  durationMinutes: number;
 };
 
 export function escapeCsvCell(value: string | number): string {
@@ -22,30 +31,39 @@ export function escapeCsvCell(value: string | number): string {
 }
 
 export function toCsv(rows: CsvRow[]): string {
-  const header = ["date", "tracker_name", "minutes", "hours"];
+  const header = [
+    "date",
+    "tracker_name",
+    "start_at",
+    "end_at",
+    "duration",
+    "minutes",
+  ];
   const body = rows.map((row) =>
-    [row.date, row.trackerName, row.minutes, row.hours]
+    [row.date, row.trackerName, row.startAt, row.endAt, row.duration, row.minutes]
       .map(escapeCsvCell)
       .join(",")
   );
 
-  return [header.join(","), ...body].join("\n");
+  return `\uFEFF${[header.join(","), ...body].join("\n")}`;
 }
 
 export function buildCsvRows(
   children: CsvTracker[],
-  summaries: CsvSummary[]
+  sessions: CsvSession[]
 ): CsvRow[] {
   const childNames = new Map(children.map((child) => [child.id, child.name]));
 
-  return summaries.map((summary) => {
-    const minutes = summary.totalMinutes;
+  return sessions.map((session) => {
+    const minutes = session.durationMinutes;
 
     return {
-      date: summary.reportDate,
-      trackerName: childNames.get(summary.childId) ?? summary.childId,
+      date: session.reportDate,
+      trackerName: childNames.get(session.childId) ?? session.childId,
+      startAt: formatSessionDateTime(session.startAt),
+      endAt: session.endAt ? formatSessionDateTime(session.endAt) : "진행 중",
+      duration: formatDuration(minutes),
       minutes,
-      hours: (minutes / 60).toFixed(2),
     };
   });
 }
