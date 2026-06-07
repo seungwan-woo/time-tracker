@@ -182,8 +182,10 @@ export function TrackerManager({ trackers }: { trackers: Tracker[] }) {
 }
 
 export function ResetDataForm({ canReset }: { canReset: boolean }) {
+  const [state, formAction] = useActionState(resetFamilyData, null);
+
   return (
-    <form action={resetFamilyData} className="space-y-3">
+    <form action={formAction} className="space-y-3">
       <input
         name="confirmText"
         type="text"
@@ -201,6 +203,7 @@ export function ResetDataForm({ canReset }: { canReset: boolean }) {
       <p className="text-xs text-text-dim">
         관리자만 실행할 수 있으며, 기록은 화면에서 제외되도록 초기화됩니다.
       </p>
+      <FormMessage state={state} />
     </form>
   );
 }

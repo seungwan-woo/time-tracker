@@ -233,19 +233,22 @@ export async function deactivateTracker(formData: FormData) {
   revalidateSettings();
 }
 
-export async function resetFamilyData(formData: FormData) {
+export async function resetFamilyData(
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
   const confirmText = formData.get("confirmText");
   const { supabase, user, membership } = await getUserFamily();
 
   if (!user || !membership || membership.role !== "owner") {
-    return;
+    return { error: "관리자만 초기화할 수 있습니다." };
   }
 
   if (confirmText !== "RESET") {
-    return;
+    return { error: "RESET을 입력해주세요." };
   }
 
-  await supabase
+  const { error } = await supabase
     .from("wearing_sessions")
     .update({
       deleted_at: new Date().toISOString(),
@@ -255,5 +258,11 @@ export async function resetFamilyData(formData: FormData) {
     .eq("family_id", membership.family_id)
     .is("deleted_at", null);
 
+  if (error) {
+    console.error("Reset family data error:", error);
+    return { error: "기록 초기화에 실패했습니다." };
+  }
+
   revalidateSettings();
+  return { success: "기록을 초기화했습니다." };
 }
