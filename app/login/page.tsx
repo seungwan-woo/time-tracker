@@ -1,12 +1,14 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { login, signup } from "@/actions/auth";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 function LoginContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const showDevAuth = process.env.NEXT_PUBLIC_ENABLE_DEV_AUTH === "true";
 
   const handleGoogleLogin = async () => {
     const supabase = createClient();
@@ -102,6 +104,42 @@ function LoginContent() {
             </svg>
             Google로 로그인
           </button>
+
+          {showDevAuth && (
+            <div className="border-t border-border pt-5 space-y-3">
+              <form action={login} className="space-y-3">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="dev@example.com"
+                  required
+                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white placeholder-text-dim focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="password"
+                  required
+                  minLength={6}
+                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white placeholder-text-dim focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="submit"
+                    className="bg-surface-elevated border border-border text-white font-bold py-3 px-4 rounded-xl hover:bg-surface-hover active:scale-[0.98] transition-all"
+                  >
+                    로그인
+                  </button>
+                  <button
+                    formAction={signup}
+                    className="bg-primary text-white font-bold py-3 px-4 rounded-xl hover:bg-primary-light active:scale-[0.98] transition-all"
+                  >
+                    가입
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           <p className="text-text-dim text-xs text-center leading-relaxed">
             로그인하면 가족 구성원과 함께

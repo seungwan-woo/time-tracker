@@ -18,6 +18,42 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Local Development With Supabase
+
+Use this when you want to test changes before deploying to Vercel.
+
+Prerequisites:
+
+- Docker Desktop is installed and running
+- Docker Desktop has WSL integration enabled for `Ubuntu-24.04`
+- Node.js 20 or newer is available in WSL
+
+Start the app against a local Supabase stack:
+
+```bash
+cd /home/wsw/git/time-tracker
+npm run dev:local
+```
+
+The script starts Supabase locally, reads the local API URL and anon key from `supabase status`, then runs `next dev` with local environment variables. Open [http://localhost:3000](http://localhost:3000).
+
+Local useful commands:
+
+```bash
+npm run supabase:status
+npm run supabase:env
+npm run supabase:reset
+npm run supabase:stop
+```
+
+In local dev only, the login page shows an email/password form. Use `가입` with any test email and a password of at least 6 characters, then continue onboarding. Email confirmation is disabled in `supabase/config.toml` for local development.
+
+If migrations change, reset the local database:
+
+```bash
+npm run supabase:reset
+```
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
