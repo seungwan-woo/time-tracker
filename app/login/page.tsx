@@ -27,7 +27,7 @@ function LoginContent() {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-background">
       <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
 
-      <div className="relative z-10 w-[min(20rem,calc(100vw-3rem))] sm:w-full sm:max-w-sm flex flex-col items-center gap-8">
+      <div className="relative z-10 auth-panel sm:w-full sm:max-w-sm flex flex-col items-center gap-8">
         {/* Logo / Icon */}
         <div className="w-20 h-20 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
           <svg
