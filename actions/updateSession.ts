@@ -65,7 +65,13 @@ export async function updateSession(
 
   // If session is closed, or endAt is provided for active session, calculate duration
   if (session.status === "closed" || endAtStr) {
-    const endAt = endAtStr ? new Date(endAtStr) : new Date(session.end_at!);
+    const endAtValue = endAtStr || session.end_at;
+
+    if (!endAtValue) {
+      return { error: "종료 시각을 확인해주세요." };
+    }
+
+    const endAt = new Date(endAtValue);
     
     if (endAt <= startAt) {
       return { error: "종료 시각은 시작 시각보다 늦어야 합니다." };

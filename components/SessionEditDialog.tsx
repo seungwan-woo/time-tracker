@@ -66,6 +66,7 @@ export default function SessionEditDialog({
   session,
 }: SessionEditDialogProps) {
   const isEdit = mode === "edit";
+  const editableSessionId = isEdit ? session?.id : undefined;
   const defaultStart = session?.start_at ? new Date(session.start_at) : new Date();
   
   // For 'add' mode, default end is 1 hour after start
@@ -131,7 +132,9 @@ export default function SessionEditDialog({
 
           <form action={formAction} className="space-y-5">
             <input type="hidden" name="childId" value={childId} />
-            {isEdit && <input type="hidden" name="sessionId" value={session!.id} />}
+            {editableSessionId && (
+              <input type="hidden" name="sessionId" value={editableSessionId} />
+            )}
 
             <div className="space-y-1">
               <label className="text-sm text-text-dim ml-1">시작 시각</label>
@@ -207,7 +210,7 @@ export default function SessionEditDialog({
             </div>
           </form>
 
-          {isEdit && (
+          {isEdit && editableSessionId && (
             <div className="mt-8 border-t border-border pt-6">
               {!showConfirmDelete ? (
                 <button
@@ -220,7 +223,7 @@ export default function SessionEditDialog({
               ) : (
                 <form action={deleteAction} className="bg-danger/5 border border-danger/20 rounded-xl p-4 text-center">
                   <p className="text-sm text-white mb-3">정말 이 기록을 삭제하시겠습니까?</p>
-                  <input type="hidden" name="sessionId" value={session!.id} />
+                  <input type="hidden" name="sessionId" value={editableSessionId} />
                   <div className="flex gap-2">
                     <button
                       type="button"
