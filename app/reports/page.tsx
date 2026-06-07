@@ -1,7 +1,97 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
-import { formatKST, formatDuration } from "@/lib/date/utils";
+import {
+  addDays,
+  endOfMonth,
+  formatDuration,
+  formatKST,
+  startOfMonth,
+} from "@/lib/date/utils";
+import type { Child, DailyWearingSummary } from "@/types/database";
+
+type ChartPoint = {
+  dateStr: string;
+  label: string;
+  minutes: number;
+  percentage: number;
+};
+
+type CalendarCell = {
+  dateStr: string;
+  day: string;
+  isCurrentMonth: boolean;
+  totalMinutes: number;
+};
+
+function getSummaryKey(childId: string, dateStr: string): string {
+  return `${childId}:${dateStr}`;
+}
+
+function buildSummaryMap(
+  summaries: DailyWearingSummary[] | null
+): Map<string, number> {
+  return new Map(
+    (summaries ?? []).map((summary) => [
+      getSummaryKey(summary.child_id, summary.report_date),
+      summary.total_minutes,
+    ])
+  );
+}
+
+function getSummaryMinutes(
+  summaryMap: Map<string, number>,
+  childId: string,
+  dateStr: string
+): number {
+  return summaryMap.get(getSummaryKey(childId, dateStr)) ?? 0;
+}
+
+function buildWeeklyChartData(
+  child: Child,
+  summaryMap: Map<string, number>
+): ChartPoint[] {
+  return Array.from({ length: 7 }, (_, index) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - index));
+    const dateStr = formatKST(d, "yyyy-MM-dd");
+    const minutes = getSummaryMinutes(summaryMap, child.id, dateStr);
+
+    return {
+      dateStr,
+      label: formatKST(d, "E"),
+      minutes,
+      percentage: Math.min((minutes / child.target_minutes_per_day) * 100, 100),
+    };
+  });
+}
+
+function buildCalendarCells(
+  children: Child[],
+  summaryMap: Map<string, number>
+): CalendarCell[] {
+  const monthStart = startOfMonth(new Date());
+  const monthEnd = endOfMonth(monthStart);
+  const leadingDays = monthStart.getDay();
+  const firstCellDate = addDays(monthStart, -leadingDays);
+  const totalCells = Math.ceil((leadingDays + monthEnd.getDate()) / 7) * 7;
+
+  return Array.from({ length: totalCells }, (_, index) => {
+    const date = addDays(firstCellDate, index);
+    const dateStr = formatKST(date, "yyyy-MM-dd");
+    const totalMinutes = children.reduce(
+      (sum, child) => sum + getSummaryMinutes(summaryMap, child.id, dateStr),
+      0
+    );
+
+    return {
+      dateStr,
+      day: formatKST(date, "d"),
+      isCurrentMonth: date.getMonth() === monthStart.getMonth(),
+      totalMinutes,
+    };
+  });
+}
 
 export default async function ReportsPage() {
   const supabase = await createClient();
@@ -45,10 +135,14 @@ export default async function ReportsPage() {
     );
   }
 
-  // Fetch last 7 days of daily summaries
+  // Fetch enough daily summaries for both the 7-day chart and current month calendar
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const startDateStr = formatKST(sevenDaysAgo, "yyyy-MM-dd");
+  const monthStartStr = formatKST(startOfMonth(new Date()), "yyyy-MM-dd");
+  const startDateStr =
+    monthStartStr < formatKST(sevenDaysAgo, "yyyy-MM-dd")
+      ? monthStartStr
+      : formatKST(sevenDaysAgo, "yyyy-MM-dd");
 
   const { data: recentSummaries } = await supabase
     .from("daily_wearing_summary")
@@ -56,6 +150,13 @@ export default async function ReportsPage() {
     .eq("family_id", familyId)
     .gte("report_date", startDateStr)
     .order("report_date", { ascending: true });
+
+  const summaryMap = buildSummaryMap(recentSummaries);
+  const calendarCells = buildCalendarCells(children, summaryMap);
+  const monthlyTotal = calendarCells.reduce(
+    (sum, cell) => sum + (cell.isCurrentMonth ? cell.totalMinutes : 0),
+    0
+  );
 
   return (
     <div className="min-h-screen pb-24 relative bg-background">
@@ -66,27 +167,63 @@ export default async function ReportsPage() {
       </header>
 
       <main className="max-w-md mx-auto px-4 pt-6 space-y-8">
+        <section className="glass rounded-3xl p-5">
+          <div className="flex items-start justify-between gap-4 mb-5">
+            <div>
+              <h2 className="text-lg font-bold">
+                {formatKST(new Date(), "yyyy년 M월")}
+              </h2>
+              <p className="text-sm text-text-dim mt-1">월간 달력</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-text-dim">이번 달 누적</p>
+              <p className="font-bold text-primary-light">
+                {formatDuration(monthlyTotal)}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-text-dim mb-2">
+            {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
+              <span key={day}>{day}</span>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {calendarCells.map((cell) => {
+              const hasMinutes = cell.totalMinutes > 0;
+
+              return (
+                <div
+                  key={cell.dateStr}
+                  className={`min-h-16 rounded-lg border p-1.5 ${
+                    cell.isCurrentMonth
+                      ? "border-border bg-surface/50"
+                      : "border-transparent bg-transparent opacity-40"
+                  }`}
+                >
+                  <div className="text-xs text-text-muted">{cell.day}</div>
+                  {hasMinutes && (
+                    <div className="mt-1 rounded-md bg-primary/15 px-1 py-1 text-center">
+                      <span className="text-[10px] font-bold text-primary-light">
+                        {Math.round(cell.totalMinutes / 60)}h
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <a
+            href="/reports/export"
+            className="mt-5 block w-full bg-surface-elevated border border-border text-white font-bold py-3 px-4 rounded-xl text-center active:scale-[0.98] transition-all"
+          >
+            CSV 다운로드
+          </a>
+        </section>
+
         {children.map((child) => {
-          const childSummaries = recentSummaries?.filter((s) => s.child_id === child.id) || [];
-          
-          // Fill missing days with 0
-          const chartData = [];
-          for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            const dateStr = formatKST(d, "yyyy-MM-dd");
-            const label = formatKST(d, "E"); // 요일
-            const summary = childSummaries.find((s) => s.report_date === dateStr);
-            const minutes = summary?.total_minutes || 0;
-            const percentage = Math.min((minutes / child.target_minutes_per_day) * 100, 100);
-            
-            chartData.push({
-              dateStr,
-              label,
-              minutes,
-              percentage,
-            });
-          }
+          const chartData = buildWeeklyChartData(child, summaryMap);
 
           const weekTotal = chartData.reduce((acc, curr) => acc + curr.minutes, 0);
           const weekAvg = Math.round(weekTotal / 7);
