@@ -3,6 +3,12 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import BottomNav from "@/components/BottomNav";
 import InviteMemberForm from "@/components/InviteMemberForm";
+import {
+  FamilyForm,
+  ProfileForm,
+  ResetDataForm,
+  TrackerManager,
+} from "@/components/SettingsForms";
 import { logout } from "@/actions/logout";
 
 export default async function SettingsPage() {
@@ -56,6 +62,17 @@ export default async function SettingsPage() {
         .limit(3)
     : { data: [] };
 
+  const { data: trackers } = membership
+    ? await supabase
+        .from("children")
+        .select("id, name, target_minutes_per_day")
+        .eq("family_id", membership.family_id)
+        .eq("active", true)
+        .order("display_order", { ascending: true })
+    : { data: [] };
+
+  const isOwner = membership?.role === "owner";
+
   return (
     <div className="min-h-screen pb-24 relative bg-background">
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
@@ -89,6 +106,13 @@ export default async function SettingsPage() {
           </div>
         </section>
 
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-text-muted px-2">내 정보</h3>
+          <div className="glass rounded-2xl p-4">
+            <ProfileForm displayName={profile?.display_name ?? null} />
+          </div>
+        </section>
+
         {/* Family Section */}
         <section className="space-y-3">
           <h3 className="text-sm font-bold text-text-muted px-2">가족 공간</h3>
@@ -100,9 +124,19 @@ export default async function SettingsPage() {
             <div className="p-4 flex justify-between items-center">
               <span className="text-white">나의 역할</span>
               <span className="text-text-dim">
-                {membership?.role === "owner" ? "관리자" : "가족 구성원"}
+                {isOwner ? "관리자" : "가족 구성원"}
               </span>
             </div>
+            <div className="p-4 border-t border-border">
+              <FamilyForm familyName={family?.name ?? null} canEdit={isOwner} />
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-text-muted px-2">대상 관리</h3>
+          <div className="glass rounded-2xl p-4">
+            <TrackerManager trackers={trackers ?? []} />
           </div>
         </section>
 
@@ -153,6 +187,14 @@ export default async function SettingsPage() {
                 ))}
               </div>
             )}
+          </div>
+        </section>
+
+        {/* App Info Section */}
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-text-muted px-2">데이터 초기화</h3>
+          <div className="glass rounded-2xl p-4">
+            <ResetDataForm canReset={isOwner} />
           </div>
         </section>
 
