@@ -40,8 +40,8 @@ export async function endWearing(sessionId: string, endAtStr?: string) {
   const startAt = new Date(session.start_at);
   const endAt = endAtStr ? new Date(endAtStr) : new Date();
 
-  if (endAt < startAt) {
-    throw new Error("End time must be after start time");
+  if (endAt <= startAt) {
+    throw new Error("종료 시각은 시작 시각보다 늦어야 합니다.");
   }
 
   const durationMinutes = calculateDurationMinutes(startAt, endAt);
@@ -60,7 +60,7 @@ export async function endWearing(sessionId: string, endAtStr?: string) {
 
   if (updateError) {
     console.error("End wearing error:", updateError);
-    throw new Error("Failed to end session");
+    throw new Error("착용 종료에 실패했습니다.");
   }
 
   revalidatePath("/dashboard");
