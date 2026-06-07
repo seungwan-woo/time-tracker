@@ -6,7 +6,7 @@ import { z } from "zod";
 
 const onboardingSchema = z.object({
   familyName: z.string().min(1, "가족 이름을 입력해주세요").max(50),
-  child1Name: z.string().min(1, "첫째 아이 이름을 입력해주세요").max(50),
+  child1Name: z.string().min(1, "첫 번째 대상 이름을 입력해주세요").max(50),
   child1Target: z.coerce.number().min(60).max(1440),
   child2Name: z.string().max(50).optional(),
   child2Target: z.coerce.number().min(60).max(1440).optional(),
@@ -122,7 +122,7 @@ export async function submitOnboarding(
 
   if (childrenError) {
     console.error("Children creation error:", childrenError);
-    return { error: "아이 정보 등록 중 오류가 발생했습니다." };
+    return { error: "대상 정보 등록 중 오류가 발생했습니다." };
   }
 
   // 6. Redirect to dashboard

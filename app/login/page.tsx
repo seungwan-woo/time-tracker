@@ -8,6 +8,7 @@ import { Suspense } from "react";
 function LoginContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const next = searchParams.get("next");
   const showDevAuth = process.env.NEXT_PUBLIC_ENABLE_DEV_AUTH === "true";
 
   const handleGoogleLogin = async () => {
@@ -15,7 +16,9 @@ function LoginContent() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback${
+          next ? `?next=${encodeURIComponent(next)}` : ""
+        }`,
       },
     });
   };
@@ -61,10 +64,10 @@ function LoginContent() {
         {/* Title */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">
-            Mask Time Tracker
+            Time Tracker
           </h1>
           <p className="text-text-muted text-sm leading-relaxed">
-            페이스마스크 착용시간을 쉽고 정확하게
+            중요한 활동 시간을 쉽고 정확하게
             <br />
             기록하고 관리하세요
           </p>
@@ -109,6 +112,11 @@ function LoginContent() {
             <div className="border-t border-border pt-5 space-y-3">
               <form action={login} className="space-y-3">
                 <input
+                  type="hidden"
+                  name="next"
+                  value={next ?? ""}
+                />
+                <input
                   type="email"
                   name="email"
                   placeholder="dev@example.com"
@@ -144,7 +152,7 @@ function LoginContent() {
           <p className="text-text-dim text-xs text-center leading-relaxed">
             로그인하면 가족 구성원과 함께
             <br />
-            착용 기록을 공유할 수 있습니다.
+            시간 기록을 공유할 수 있습니다.
           </p>
         </div>
 

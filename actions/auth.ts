@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 export async function login(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const next = formData.get("next") as string | null;
 
   if (!email || !password) {
     return redirect("/login?error=이메일과 비밀번호를 입력해주세요");
@@ -30,6 +31,10 @@ export async function login(formData: FormData) {
       .limit(1)
       .single();
       
+    if (next?.startsWith("/invite/")) {
+      redirect(next);
+    }
+
     if (!membership) {
       redirect("/onboarding");
     }
@@ -41,6 +46,7 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const next = formData.get("next") as string | null;
 
   if (!email || !password) {
     return redirect("/login?error=이메일과 비밀번호를 입력해주세요");
@@ -60,6 +66,9 @@ export async function signup(formData: FormData) {
   // 꺼져있다면 자동 로그인됩니다.
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
+    if (next?.startsWith("/invite/")) {
+      redirect(next);
+    }
     redirect("/onboarding");
   } else {
     return redirect("/login?error=회원가입 완료! 이메일을 확인하여 인증해주세요. (또는 Supabase에서 Confirm Email을 끄시면 바로 로그인됩니다)");

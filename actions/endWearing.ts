@@ -60,7 +60,7 @@ export async function endWearing(sessionId: string, endAtStr?: string) {
 
   if (updateError) {
     console.error("End wearing error:", updateError);
-    throw new Error("착용 종료에 실패했습니다.");
+    throw new Error("기록 종료에 실패했습니다.");
   }
 
   revalidatePath("/dashboard");

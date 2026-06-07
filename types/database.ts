@@ -166,6 +166,7 @@ export type Database = {
           id: string;
           family_id: string;
           code: string;
+          invited_email: string | null;
           created_by: string;
           expires_at: string;
           used_by: string | null;
@@ -176,6 +177,7 @@ export type Database = {
           id?: string;
           family_id: string;
           code: string;
+          invited_email?: string | null;
           created_by: string;
           expires_at: string;
           used_by?: string | null;
@@ -224,6 +226,10 @@ export type Database = {
     Functions: {
       is_family_member: {
         Args: { target_family_id: string };
+        Returns: boolean;
+      };
+      redeem_invite_code: {
+        Args: { invite_code: string };
         Returns: boolean;
       };
     };

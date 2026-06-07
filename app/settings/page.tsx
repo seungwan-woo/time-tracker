@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import BottomNav from "@/components/BottomNav";
+import InviteMemberForm from "@/components/InviteMemberForm";
 import { logout } from "@/actions/logout";
 
 export default async function SettingsPage() {
@@ -36,6 +37,24 @@ export default async function SettingsPage() {
         .eq("id", membership.family_id)
         .single()
     : { data: null };
+
+  const { data: members } = membership
+    ? await supabase
+        .from("family_members")
+        .select("id, user_id, role, created_at")
+        .eq("family_id", membership.family_id)
+        .order("created_at", { ascending: true })
+    : { data: [] };
+
+  const { data: invites } = membership
+    ? await supabase
+        .from("invite_codes")
+        .select("id, invited_email, expires_at, used_at")
+        .eq("family_id", membership.family_id)
+        .is("used_at", null)
+        .order("created_at", { ascending: false })
+        .limit(3)
+    : { data: [] };
 
   return (
     <div className="min-h-screen pb-24 relative bg-background">
@@ -84,6 +103,56 @@ export default async function SettingsPage() {
                 {membership?.role === "owner" ? "관리자" : "가족 구성원"}
               </span>
             </div>
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-text-muted px-2">공동 관리</h3>
+          <div className="glass rounded-2xl p-4 space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">참여 중</span>
+                <span className="text-white font-medium">
+                  {members?.length ?? 0}명
+                </span>
+              </div>
+              <div className="space-y-2">
+                {members?.map((member) => (
+                  <div
+                    key={member.id}
+                    className="bg-surface/60 border border-border rounded-xl px-3 py-2 flex items-center justify-between"
+                  >
+                    <span className="text-sm text-text-dim">
+                      {member.user_id === user.id ? user.email : member.user_id.slice(0, 8)}
+                    </span>
+                    <span className="text-xs text-text-muted">
+                      {member.role === "owner" ? "관리자" : "구성원"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <InviteMemberForm />
+
+            {invites && invites.length > 0 && (
+              <div className="border-t border-border pt-3 space-y-2">
+                <p className="text-xs text-text-dim">대기 중인 초대</p>
+                {invites.map((invite) => (
+                  <div
+                    key={invite.id}
+                    className="flex justify-between gap-3 text-xs text-text-muted"
+                  >
+                    <span className="truncate">
+                      {invite.invited_email ?? "이메일 없음"}
+                    </span>
+                    <span>
+                      {new Date(invite.expires_at).toLocaleDateString("ko-KR")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

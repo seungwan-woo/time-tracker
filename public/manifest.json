@@ -1,7 +1,7 @@
 {
-  "name": "Mask Time Tracker",
-  "short_name": "Mask Timer",
-  "description": "치아 교정 페이스마스크 착용시간 기록",
+  "name": "Time Tracker",
+  "short_name": "Time Tracker",
+  "description": "일상의 활동 시간을 기록하고 관리하는 앱",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#1a1a2e",

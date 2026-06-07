@@ -100,7 +100,7 @@ export default async function DashboardPage() {
           </p>
         </header>
 
-        {/* Children Cards */}
+        {/* Tracker Cards */}
         <div className="space-y-6">
           {children?.map((child) => (
             <ChildCard
@@ -113,12 +113,12 @@ export default async function DashboardPage() {
 
           {(!children || children.length === 0) && (
             <div className="glass rounded-2xl p-8 text-center">
-              <p className="text-text-muted mb-4">등록된 아이가 없습니다.</p>
+              <p className="text-text-muted mb-4">등록된 대상이 없습니다.</p>
               <a
                 href="/settings"
                 className="text-primary hover:text-primary-light font-medium transition-colors"
               >
-                설정에서 아이 추가하기
+                설정에서 대상 추가하기
               </a>
             </div>
           )}

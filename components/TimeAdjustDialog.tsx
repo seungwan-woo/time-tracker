@@ -57,7 +57,7 @@ export default function TimeAdjustDialog({
 
           <div className="mb-8 space-y-2">
             <label className="text-sm text-text-dim ml-1" htmlFor="wearing-time">
-              착용 시각
+              기록 시각
             </label>
             <input
               id="wearing-time"
