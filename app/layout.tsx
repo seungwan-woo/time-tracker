@@ -8,13 +8,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Mask Time Tracker",
-  description: "치아 교정 페이스마스크 착용시간을 기록하고 관리하는 앱",
+  title: "Time Tracker",
+  description: "일상의 활동 시간을 기록하고 관리하는 앱",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Mask Timer",
+    title: "Time Tracker",
   },
 };
 

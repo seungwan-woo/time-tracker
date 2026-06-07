@@ -49,7 +49,7 @@ export async function addManualSession(
     .single();
 
   if (childError || !child) {
-    return { error: "아이 정보를 찾을 수 없습니다." };
+    return { error: "대상 정보를 찾을 수 없습니다." };
   }
 
   const { data: isMember } = await supabase.rpc("is_family_member", {

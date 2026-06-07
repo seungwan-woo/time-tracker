@@ -79,16 +79,16 @@ export default function OnboardingPage() {
 
           {/* Child 1 Section */}
           <div className="glass rounded-2xl p-6 space-y-4">
-            <h2 className="text-xl font-semibold">2. 첫째 아이 정보</h2>
+            <h2 className="text-xl font-semibold">2. 첫 번째 대상</h2>
             <div>
               <label htmlFor="child1Name" className="block text-sm text-text-dim mb-2">
-                아이 이름
+                이름
               </label>
               <input
                 id="child1Name"
                 name="child1Name"
                 type="text"
-                placeholder="예: 첫째, 지훈"
+                placeholder="예: 운동, 공부, 프로젝트"
                 required
                 className="w-full bg-surface-elevated border border-border rounded-xl px-4 py-3 text-white placeholder-text-dim focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
@@ -100,7 +100,7 @@ export default function OnboardingPage() {
             </div>
             <div>
               <label htmlFor="child1Target" className="block text-sm text-text-dim mb-2">
-                하루 목표 착용 시간 (분)
+                하루 목표 시간 (분)
               </label>
               <input
                 id="child1Target"
@@ -116,29 +116,29 @@ export default function OnboardingPage() {
             </div>
           </div>
 
-          {/* Child 2 Section (Optional) */}
+          {/* Second tracker section (optional) */}
           <div className="glass rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">3. 둘째 아이 정보</h2>
+              <h2 className="text-xl font-semibold">3. 두 번째 대상</h2>
               <span className="text-xs bg-surface-elevated px-2 py-1 rounded-md text-text-dim">
                 선택사항
               </span>
             </div>
             <div>
               <label htmlFor="child2Name" className="block text-sm text-text-dim mb-2">
-                아이 이름
+                이름
               </label>
               <input
                 id="child2Name"
                 name="child2Name"
                 type="text"
-                placeholder="예: 둘째, 서연"
+                placeholder="예: 독서, 회고"
                 className="w-full bg-surface-elevated border border-border rounded-xl px-4 py-3 text-white placeholder-text-dim focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
             </div>
             <div>
               <label htmlFor="child2Target" className="block text-sm text-text-dim mb-2">
-                하루 목표 착용 시간 (분)
+                하루 목표 시간 (분)
               </label>
               <input
                 id="child2Target"

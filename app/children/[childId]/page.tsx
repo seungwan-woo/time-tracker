@@ -75,7 +75,7 @@ export default async function ChildDetailPage(props: { params: Promise<{ childId
         </div>
 
         <div>
-          <h3 className="text-lg font-bold mb-4 px-2">최근 착용 기록</h3>
+          <h3 className="text-lg font-bold mb-4 px-2">최근 기록</h3>
           
           <div className="space-y-3">
             {sessions?.map((session) => (
@@ -97,7 +97,7 @@ export default async function ChildDetailPage(props: { params: Promise<{ childId
                   <div className="text-right">
                     {session.status === "active" ? (
                       <span className="bg-active/20 text-active-light text-xs font-bold px-2 py-1 rounded-md animate-pulse">
-                        착용 중
+                        진행 중
                       </span>
                     ) : (
                       <span className="text-lg font-bold text-success-light">

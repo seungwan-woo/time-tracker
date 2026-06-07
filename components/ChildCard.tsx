@@ -69,7 +69,7 @@ export default function ChildCard({
       setShowStartDialog(false);
     } catch (error) {
       setActionError(
-        error instanceof Error ? error.message : "착용 시작에 실패했습니다."
+        error instanceof Error ? error.message : "기록 시작에 실패했습니다."
       );
     } finally {
       setIsPending(false);
@@ -85,7 +85,7 @@ export default function ChildCard({
       setShowEndDialog(false);
     } catch (error) {
       setActionError(
-        error instanceof Error ? error.message : "착용 종료에 실패했습니다."
+        error instanceof Error ? error.message : "기록 종료에 실패했습니다."
       );
     } finally {
       setIsPending(false);
@@ -116,10 +116,10 @@ export default function ChildCard({
                 />
                 <span className="text-sm font-medium text-text-muted">
                   {activeSession
-                    ? "착용 중"
+                    ? "진행 중"
                     : percentage >= 100
                     ? "오늘 목표 달성!"
-                    : "미착용"}
+                    : "대기 중"}
                 </span>
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function ChildCard({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                 </svg>
-                착용 종료
+                종료
               </button>
             ) : (
               <button
@@ -181,7 +181,7 @@ export default function ChildCard({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                착용 시작
+                시작
               </button>
             )}
 

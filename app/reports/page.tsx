@@ -39,7 +39,7 @@ export default async function ReportsPage() {
   if (!children || children.length === 0) {
     return (
       <div className="min-h-screen pb-24 relative flex items-center justify-center">
-        <p className="text-text-muted">아이 정보가 없습니다.</p>
+        <p className="text-text-muted">대상 정보가 없습니다.</p>
         <BottomNav />
       </div>
     );
@@ -61,7 +61,7 @@ export default async function ReportsPage() {
     <div className="min-h-screen pb-24 relative bg-background">
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-md mx-auto px-4 h-14 flex items-center">
-          <h1 className="text-xl font-bold">착용 리포트</h1>
+          <h1 className="text-xl font-bold">시간 리포트</h1>
         </div>
       </header>
 
