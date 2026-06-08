@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { formatDuration, formatDateDisplay, formatTimeRange } from "@/lib/date/utils";
+import { formatDuration } from "@/lib/date/utils";
 import BottomNav from "@/components/BottomNav";
+import RecentSessionsList from "@/components/RecentSessionsList";
 
 export default async function ChildDetailPage(props: { params: Promise<{ childId: string }> }) {
   const params = await props.params;
@@ -76,50 +77,7 @@ export default async function ChildDetailPage(props: { params: Promise<{ childId
 
         <div className="min-w-0">
           <h3 className="text-lg font-bold mb-4 px-2">최근 기록</h3>
-          
-          <div className="space-y-3">
-            {sessions?.map((session) => (
-              <div 
-                key={session.id} 
-                className={`glass-elevated rounded-xl p-4 border-l-4 ${
-                  session.status === "active" ? "border-l-active" : "border-l-success"
-                }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-text-muted">
-                      {formatDateDisplay(session.report_date)}
-                    </span>
-                    <span className="text-lg font-bold mt-1 tracking-tight">
-                      {formatTimeRange(session.start_at, session.end_at)}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    {session.status === "active" ? (
-                      <span className="bg-active/20 text-active-light text-xs font-bold px-2 py-1 rounded-md animate-pulse">
-                        진행 중
-                      </span>
-                    ) : (
-                      <span className="text-lg font-bold text-success-light">
-                        {formatDuration(session.duration_minutes || 0)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {session.note && (
-                  <p className="text-sm text-text-dim mt-2 bg-surface/50 p-2 rounded-lg">
-                    {session.note}
-                  </p>
-                )}
-              </div>
-            ))}
-
-            {(!sessions || sessions.length === 0) && (
-              <div className="text-center py-12 text-text-dim">
-                기록이 없습니다.
-              </div>
-            )}
-          </div>
+          <RecentSessionsList childId={child.id} sessions={sessions || []} />
         </div>
       </main>
 
