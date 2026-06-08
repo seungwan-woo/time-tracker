@@ -85,6 +85,7 @@ export default function SessionEditDialog({
   const [state, formAction] = useActionState(action, null);
   const [deleteState, deleteAction] = useActionState(deleteSession, null);
   
+  const [showConfirmSave, setShowConfirmSave] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   // Effect to handle success callbacks
@@ -130,7 +131,16 @@ export default function SessionEditDialog({
             </div>
           )}
 
-          <form action={formAction} className="space-y-5">
+          <form
+            action={formAction}
+            className="space-y-5"
+            onSubmit={(event) => {
+              if (isEdit && !showConfirmSave) {
+                event.preventDefault();
+                setShowConfirmSave(true);
+              }
+            }}
+          >
             <input type="hidden" name="childId" value={childId} />
             {editableSessionId && (
               <input type="hidden" name="sessionId" value={editableSessionId} />
@@ -146,6 +156,7 @@ export default function SessionEditDialog({
                   setStartAt(e.target.value);
                   // Auto-update report date to match start date if they change the day
                   setReportDate(e.target.value.split("T")[0]);
+                  setShowConfirmSave(false);
                 }}
                 required
                 className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -159,7 +170,10 @@ export default function SessionEditDialog({
                   type="datetime-local"
                   name="endAt"
                   value={endAt}
-                  onChange={(e) => setEndAt(e.target.value)}
+                  onChange={(e) => {
+                    setEndAt(e.target.value);
+                    setShowConfirmSave(false);
+                  }}
                   required
                   className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
@@ -181,7 +195,10 @@ export default function SessionEditDialog({
                 type="date"
                 name="reportDate"
                 value={reportDate}
-                onChange={(e) => setReportDate(e.target.value)}
+                onChange={(e) => {
+                  setReportDate(e.target.value);
+                  setShowConfirmSave(false);
+                }}
                 required
                 className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
@@ -194,19 +211,36 @@ export default function SessionEditDialog({
                 defaultValue={session?.note || ""}
                 rows={2}
                 placeholder="특이사항이 있다면 적어주세요."
+                onChange={() => setShowConfirmSave(false)}
                 className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white placeholder-text-dim focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
               />
             </div>
 
+            {isEdit && showConfirmSave && (
+              <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
+                <p className="text-sm font-semibold text-white">이 내용으로 기록을 수정하시겠습니까?</p>
+                <p className="text-xs text-text-dim mt-1">
+                  확정하면 최근 기록과 리포트에 바로 반영됩니다.
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => {
+                  if (showConfirmSave) {
+                    setShowConfirmSave(false);
+                    return;
+                  }
+
+                  onClose();
+                }}
                 className="flex-1 bg-surface-elevated border border-border text-white font-bold py-3 px-4 rounded-xl hover:bg-surface-hover active:scale-[0.98] transition-all"
               >
-                취소
+                {showConfirmSave ? "다시 수정" : "취소"}
               </button>
-              <SubmitButton label="저장" />
+              <SubmitButton label={isEdit && showConfirmSave ? "수정 확정" : "저장"} />
             </div>
           </form>
 
