@@ -5,7 +5,7 @@ import { updateSession } from "@/actions/updateSession";
 import { addManualSession } from "@/actions/addManualSession";
 import { deleteSession } from "@/actions/deleteSession";
 import { useFormStatus } from "react-dom";
-import { toDatetimeLocalString, calculateDurationMinutes, formatDuration } from "@/lib/date/utils";
+import { toDatetimeLocalString, calculateDurationMinutes, formatDuration, parseDatetimeLocalString } from "@/lib/date/utils";
 
 interface SessionEditDialogProps {
   isOpen: boolean;
@@ -58,6 +58,13 @@ function DeleteButton() {
   );
 }
 
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, value) =>
+  value.toString().padStart(2, "0")
+);
+const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, value) =>
+  value.toString().padStart(2, "0")
+);
+
 export default function SessionEditDialog({
   isOpen,
   onClose,
@@ -97,13 +104,89 @@ export default function SessionEditDialog({
 
   const duration = (() => {
     if (startAt && endAt) {
-      const start = new Date(startAt);
-      const end = new Date(endAt);
-      return end > start ? calculateDurationMinutes(start, end) : 0;
+      try {
+        const start = parseDatetimeLocalString(startAt);
+        const end = parseDatetimeLocalString(endAt);
+        return end > start ? calculateDurationMinutes(start, end) : 0;
+      } catch {
+        return 0;
+      }
     }
 
     return 0;
   })();
+
+  const updateDateTime = (
+    currentValue: string,
+    nextDate: string | undefined,
+    nextHour: string | undefined,
+    nextMinute: string | undefined
+  ) => {
+    const [currentDate = "", currentTime = "00:00"] = currentValue.split("T");
+    const [currentHour = "00", currentMinute = "00"] = currentTime.split(":");
+    const date = nextDate ?? currentDate;
+    const hour = nextHour ?? currentHour;
+    const minute = nextMinute ?? currentMinute;
+
+    return `${date}T${hour}:${minute}`;
+  };
+
+  const editDateTimeField = (
+    label: string,
+    value: string,
+    onChange: (nextValue: string) => void
+  ) => {
+    const [datePart = "", timePart = "00:00"] = value.split("T");
+    const [hourPart = "00", minutePart = "00"] = timePart.split(":");
+
+    return (
+      <div className="space-y-3">
+        <label className="text-sm text-text-dim ml-1">{label}</label>
+        <input
+          type="date"
+          value={datePart}
+          onChange={(event) => {
+            onChange(updateDateTime(value, event.target.value, undefined, undefined));
+            setShowConfirmSave(false);
+          }}
+          required
+          className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+        />
+        <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+          <select
+            value={hourPart}
+            onChange={(event) => {
+              onChange(updateDateTime(value, undefined, event.target.value, undefined));
+              setShowConfirmSave(false);
+            }}
+            className="w-full appearance-none bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          >
+            {HOUR_OPTIONS.map((hour) => (
+              <option key={hour} value={hour}>
+                {hour}시
+              </option>
+            ))}
+          </select>
+          <span className="text-text-dim text-sm font-medium">:</span>
+          <select
+            value={minutePart}
+            onChange={(event) => {
+              onChange(updateDateTime(value, undefined, undefined, event.target.value));
+              setShowConfirmSave(false);
+            }}
+            className="w-full appearance-none bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          >
+            {MINUTE_OPTIONS.map((minute) => (
+              <option key={minute} value={minute}>
+                {minute}분
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="text-xs text-text-dim px-1">24시간 기준으로 저장됩니다.</p>
+      </div>
+    );
+  };
 
   if (!isOpen) return null;
 
@@ -145,38 +228,56 @@ export default function SessionEditDialog({
             {editableSessionId && (
               <input type="hidden" name="sessionId" value={editableSessionId} />
             )}
+            {isEdit && <input type="hidden" name="startAt" value={startAt} />}
+            {isEdit && session?.status === "closed" && (
+              <input type="hidden" name="endAt" value={endAt} />
+            )}
 
             <div className="space-y-1">
-              <label className="text-sm text-text-dim ml-1">시작 시각</label>
-              <input
-                type="datetime-local"
-                name="startAt"
-                value={startAt}
-                onChange={(e) => {
-                  setStartAt(e.target.value);
-                  // Auto-update report date to match start date if they change the day
-                  setReportDate(e.target.value.split("T")[0]);
-                  setShowConfirmSave(false);
-                }}
-                required
-                className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
+              {isEdit
+                ? editDateTimeField("시작 시각", startAt, (nextValue) => {
+                    setStartAt(nextValue);
+                    setReportDate(nextValue.split("T")[0]);
+                  })
+                : (
+                  <>
+                    <label className="text-sm text-text-dim ml-1">시작 시각</label>
+                    <input
+                      type="datetime-local"
+                      name="startAt"
+                      value={startAt}
+                      onChange={(e) => {
+                        setStartAt(e.target.value);
+                        setReportDate(e.target.value.split("T")[0]);
+                        setShowConfirmSave(false);
+                      }}
+                      required
+                      className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </>
+                )}
             </div>
 
             {(!isEdit || session?.status === "closed") && (
               <div className="space-y-1">
-                <label className="text-sm text-text-dim ml-1">종료 시각</label>
-                <input
-                  type="datetime-local"
-                  name="endAt"
-                  value={endAt}
-                  onChange={(e) => {
-                    setEndAt(e.target.value);
-                    setShowConfirmSave(false);
-                  }}
-                  required
-                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
+                {isEdit
+                  ? editDateTimeField("종료 시각", endAt, setEndAt)
+                  : (
+                    <>
+                      <label className="text-sm text-text-dim ml-1">종료 시각</label>
+                      <input
+                        type="datetime-local"
+                        name="endAt"
+                        value={endAt}
+                        onChange={(e) => {
+                          setEndAt(e.target.value);
+                          setShowConfirmSave(false);
+                        }}
+                        required
+                        className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </>
+                  )}
               </div>
             )}
 

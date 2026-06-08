@@ -2,10 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { calculateDurationMinutes } from "@/lib/date/utils";
+import { calculateDurationMinutes, parseDatetimeLocalString } from "@/lib/date/utils";
 
 function parseEndAt(endAtStr: string | undefined): Date {
-  const endAt = endAtStr ? new Date(endAtStr) : new Date();
+  const endAt = endAtStr ? parseDatetimeLocalString(endAtStr) : new Date();
 
   if (Number.isNaN(endAt.getTime())) {
     throw new Error("종료 시각을 다시 선택해주세요.");
