@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { calculateDurationMinutes, getReportDate } from "@/lib/date/utils";
+import { calculateDurationMinutes, getReportDate, parseDatetimeLocalString } from "@/lib/date/utils";
 import type { Database } from "@/types/database";
 
 type ActionState = { error?: string; success?: boolean };
@@ -33,7 +33,7 @@ export async function updateSession(
     return { error: "필수 항목이 누락되었습니다." };
   }
 
-  const startAt = new Date(startAtStr);
+  const startAt = parseDatetimeLocalString(startAtStr);
   const reportDate = reportDateStr || getReportDate(startAt);
 
   // Get current session
@@ -71,7 +71,8 @@ export async function updateSession(
       return { error: "종료 시각을 확인해주세요." };
     }
 
-    const endAt = new Date(endAtValue);
+    const endAt =
+      endAtStr ? parseDatetimeLocalString(endAtStr) : new Date(endAtValue);
     
     if (endAt <= startAt) {
       return { error: "종료 시각은 시작 시각보다 늦어야 합니다." };

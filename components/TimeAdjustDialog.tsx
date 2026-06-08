@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
-import { toDatetimeLocalString } from "@/lib/date/utils";
+import { formatKST, parseDatetimeLocalString, toDatetimeLocalString } from "@/lib/date/utils";
 
 interface TimeAdjustDialogProps {
   isOpen: boolean;
@@ -29,8 +28,14 @@ export default function TimeAdjustDialog({
 
   if (!isOpen) return null;
 
-  const selectedDate = new Date(selectedValue);
-  const isValidDate = !Number.isNaN(selectedDate.getTime());
+  const selectedDate = (() => {
+    try {
+      return parseDatetimeLocalString(selectedValue);
+    } catch {
+      return null;
+    }
+  })();
+  const isValidDate = selectedDate !== null;
   const isAfterMinDate = !minDate || (isValidDate && selectedDate >= minDate);
   const canConfirm = isValidDate && isAfterMinDate;
 
@@ -49,10 +54,10 @@ export default function TimeAdjustDialog({
 
             <div className="text-center mb-8">
               <div className="text-4xl font-mono font-bold text-primary-light mb-2">
-                {isValidDate ? format(selectedDate, "HH:mm") : "--:--"}
+                {isValidDate ? formatKST(selectedDate, "HH:mm") : "--:--"}
               </div>
               <div className="text-sm text-text-dim">
-                {isValidDate ? format(selectedDate, "yyyy년 MM월 dd일") : "시간을 선택해주세요"}
+                {isValidDate ? formatKST(selectedDate, "yyyy년 MM월 dd일") : "시간을 선택해주세요"}
               </div>
             </div>
 

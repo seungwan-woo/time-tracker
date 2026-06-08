@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { getReportDate } from "@/lib/date/utils";
+import { getReportDate, parseDatetimeLocalString } from "@/lib/date/utils";
 
 export async function startWearing(childId: string, startAtStr?: string) {
   const supabase = await createClient();
@@ -49,7 +49,7 @@ export async function startWearing(childId: string, startAtStr?: string) {
   }
 
   // Insert active session
-  const startAt = startAtStr ? new Date(startAtStr) : new Date();
+  const startAt = startAtStr ? parseDatetimeLocalString(startAtStr) : new Date();
   const reportDate = getReportDate(startAt);
 
   const { error: insertError } = await supabase.from("wearing_sessions").insert({

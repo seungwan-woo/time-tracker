@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { calculateDurationMinutes, getReportDate } from "@/lib/date/utils";
+import { calculateDurationMinutes, getReportDate, parseDatetimeLocalString } from "@/lib/date/utils";
 
 type ActionState = { error?: string; success?: boolean };
 
@@ -31,8 +31,8 @@ export async function addManualSession(
     return { error: "필수 항목이 누락되었습니다." };
   }
 
-  const startAt = new Date(startAtStr);
-  const endAt = new Date(endAtStr);
+  const startAt = parseDatetimeLocalString(startAtStr);
+  const endAt = parseDatetimeLocalString(endAtStr);
 
   if (endAt <= startAt) {
     return { error: "종료 시각은 시작 시각보다 늦어야 합니다." };

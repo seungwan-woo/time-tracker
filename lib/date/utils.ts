@@ -1,8 +1,9 @@
 import { TZDate } from "@date-fns/tz";
 import { format, differenceInMinutes, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, addDays, subDays, addWeeks, subWeeks, addMonths, subMonths } from "date-fns";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { ko } from "date-fns/locale";
 
-const TIMEZONE = "Asia/Seoul";
+export const TIMEZONE = "Asia/Seoul";
 
 /**
  * Get the current time in Asia/Seoul timezone
@@ -24,6 +25,19 @@ export function toKST(date: Date | string): Date {
 export function formatKST(date: Date | string, formatStr: string): string {
   const kstDate = toKST(date);
   return format(kstDate, formatStr, { locale: ko });
+}
+
+/**
+ * Parse a datetime-local value as an Asia/Seoul local time.
+ */
+export function parseDatetimeLocalString(value: string): Date {
+  const parsed = fromZonedTime(value, TIMEZONE);
+
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error("시간을 다시 선택해주세요.");
+  }
+
+  return parsed;
 }
 
 /**
@@ -139,8 +153,7 @@ export function formatDateDisplay(dateStr: string): string {
  * Format for datetime-local input
  */
 export function toDatetimeLocalString(date: Date | string): string {
-  const kstDate = toKST(date);
-  return format(kstDate, "yyyy-MM-dd'T'HH:mm");
+  return formatInTimeZone(date, TIMEZONE, "yyyy-MM-dd'T'HH:mm");
 }
 
 // Re-export date-fns functions for convenience
