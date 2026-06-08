@@ -206,24 +206,29 @@ export default async function ReportsPage(props: ReportsPageProps) {
                   )}
                   {hasMinutes && calendarView === "sessions" && (
                     <div className="mt-1 space-y-1">
-                      {cell.sessions.slice(0, 3).map((session, index) => (
+                      {cell.sessions.slice(0, 2).map((session, index) => (
                         <div
                           key={`${cell.dateStr}-${session.childId}-${session.startTime}-${index}`}
-                          className="rounded-md bg-primary/12 px-1.5 py-1 text-[9px] leading-tight text-primary-light"
+                          className="overflow-hidden rounded-md bg-primary/12 px-1 py-1 text-[8px] leading-tight text-primary-light sm:px-1.5 sm:text-[9px]"
                         >
                           <div className="truncate font-semibold text-white">
                             {session.childName}
                           </div>
-                          <div className="mt-0.5 grid grid-cols-[1fr_1fr_auto] gap-1 font-mono">
-                            <span>{session.startTime}</span>
-                            <span>{session.endTime}</span>
-                            <span className="text-right">{session.duration}</span>
+                          <div className="mt-0.5 space-y-0.5 font-mono sm:hidden">
+                            <div className="truncate">{session.startTime}</div>
+                            <div className="truncate">{session.endTime}</div>
+                            <div className="truncate font-semibold">{session.duration}</div>
+                          </div>
+                          <div className="mt-0.5 hidden grid-cols-[1fr_1fr_auto] gap-1 font-mono sm:grid">
+                            <span className="truncate">{session.startTime}</span>
+                            <span className="truncate">{session.endTime}</span>
+                            <span className="truncate text-right">{session.duration}</span>
                           </div>
                         </div>
                       ))}
-                      {cell.sessions.length > 3 && (
+                      {cell.sessions.length > 2 && (
                         <div className="text-[9px] text-text-dim">
-                          +{cell.sessions.length - 3}건 더 있음
+                          +{cell.sessions.length - 2}건 더 있음
                         </div>
                       )}
                       <div className="pt-0.5 text-right text-[9px] font-semibold text-primary-light">
