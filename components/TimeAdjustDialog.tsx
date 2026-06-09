@@ -42,11 +42,11 @@ export default function TimeAdjustDialog({
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fade-in"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] animate-fade-in"
         onClick={onClose}
       />
-      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center sm:bottom-6 sm:px-4">
-        <div className="w-full max-w-md glass-elevated rounded-t-3xl border-t border-white/10 animate-slide-up pb-safe sm:rounded-3xl sm:border">
+      <div className="fixed inset-x-0 bottom-0 z-[60] flex max-h-dvh items-end justify-center pt-6 sm:bottom-6 sm:px-4">
+        <div className="w-full max-w-md glass-elevated rounded-t-3xl border-t border-white/10 animate-slide-up max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] sm:max-h-[min(42rem,calc(100dvh-3rem))] sm:rounded-3xl sm:border">
           <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mt-4 mb-2" />
 
           <div className="p-6">
