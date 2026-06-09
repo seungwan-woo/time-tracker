@@ -5,7 +5,13 @@ import { updateSession } from "@/actions/updateSession";
 import { addManualSession } from "@/actions/addManualSession";
 import { deleteSession } from "@/actions/deleteSession";
 import { useFormStatus } from "react-dom";
-import { toDatetimeLocalString, calculateDurationMinutes, formatDuration, parseDatetimeLocalString } from "@/lib/date/utils";
+import {
+  toDatetimeLocalString,
+  calculateDurationMinutes,
+  formatDuration,
+  getReportDate,
+  parseDatetimeLocalString,
+} from "@/lib/date/utils";
 
 interface SessionEditDialogProps {
   isOpen: boolean;
@@ -83,7 +89,7 @@ export default function SessionEditDialog({
       ? null 
       : new Date(defaultStart.getTime() + 60 * 60 * 1000);
 
-  const defaultReportDate = session?.report_date || defaultStart.toISOString().split("T")[0];
+  const defaultReportDate = session?.report_date || getReportDate(defaultStart);
 
   const [startAt, setStartAt] = useState(toDatetimeLocalString(defaultStart));
   const [endAt, setEndAt] = useState(defaultEnd ? toDatetimeLocalString(defaultEnd) : "");
@@ -194,16 +200,16 @@ export default function SessionEditDialog({
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fade-in"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] animate-fade-in"
         onClick={onClose}
       />
       
       {/* Dialog */}
-      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center sm:bottom-6 sm:px-4">
-        <div className="w-full max-w-lg glass-elevated rounded-t-3xl border-t border-white/10 animate-slide-up max-h-[90vh] overflow-y-auto pb-safe sm:rounded-3xl sm:border">
+      <div className="fixed inset-x-0 bottom-0 z-[60] flex max-h-dvh items-end justify-center pt-6 sm:bottom-6 sm:px-4">
+        <div className="w-full max-w-lg glass-elevated rounded-t-3xl border-t border-white/10 animate-slide-up flex max-h-[calc(100dvh-1.5rem)] flex-col overscroll-contain sm:max-h-[min(48rem,calc(100dvh-3rem))] sm:rounded-3xl sm:border">
           <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mt-4 mb-2" />
 
-          <div className="p-6">
+          <div className="flex min-h-0 flex-1 flex-col p-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]">
           <h2 className="text-xl font-bold mb-6">
             {isEdit ? "기록 수정" : "세션 추가"}
           </h2>
@@ -216,7 +222,7 @@ export default function SessionEditDialog({
 
           <form
             action={formAction}
-            className="space-y-5"
+            className="flex min-h-0 flex-1 flex-col"
             onSubmit={(event) => {
               if (isEdit && !showConfirmSave) {
                 event.preventDefault();
@@ -232,45 +238,23 @@ export default function SessionEditDialog({
             {isEdit && session?.status === "closed" && (
               <input type="hidden" name="endAt" value={endAt} />
             )}
-
-            <div className="space-y-1">
-              {isEdit
-                ? editDateTimeField("시작 시각", startAt, (nextValue) => {
-                    setStartAt(nextValue);
-                    setReportDate(nextValue.split("T")[0]);
-                  })
-                : (
-                  <>
-                    <label className="text-sm text-text-dim ml-1">시작 시각</label>
-                    <input
-                      type="datetime-local"
-                      name="startAt"
-                      value={startAt}
-                      onChange={(e) => {
-                        setStartAt(e.target.value);
-                        setReportDate(e.target.value.split("T")[0]);
-                        setShowConfirmSave(false);
-                      }}
-                      required
-                      className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </>
-                )}
-            </div>
-
-            {(!isEdit || session?.status === "closed") && (
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
               <div className="space-y-1">
                 {isEdit
-                  ? editDateTimeField("종료 시각", endAt, setEndAt)
+                  ? editDateTimeField("시작 시각", startAt, (nextValue) => {
+                      setStartAt(nextValue);
+                      setReportDate(nextValue.split("T")[0]);
+                    })
                   : (
                     <>
-                      <label className="text-sm text-text-dim ml-1">종료 시각</label>
+                      <label className="text-sm text-text-dim ml-1">시작 시각</label>
                       <input
                         type="datetime-local"
-                        name="endAt"
-                        value={endAt}
+                        name="startAt"
+                        value={startAt}
                         onChange={(e) => {
-                          setEndAt(e.target.value);
+                          setStartAt(e.target.value);
+                          setReportDate(e.target.value.split("T")[0]);
                           setShowConfirmSave(false);
                         }}
                         required
@@ -279,74 +263,99 @@ export default function SessionEditDialog({
                     </>
                   )}
               </div>
-            )}
 
-            {duration > 0 && (
-              <div className="text-sm text-right px-1">
-                총 <span className="font-bold text-primary-light">{formatDuration(duration)}</span>
-                {duration > 18 * 60 && (
-                  <span className="text-warning ml-2">(18시간 초과 주의)</span>
-                )}
-              </div>
-            )}
+              {(!isEdit || session?.status === "closed") && (
+                <div className="space-y-1">
+                  {isEdit
+                    ? editDateTimeField("종료 시각", endAt, setEndAt)
+                    : (
+                      <>
+                        <label className="text-sm text-text-dim ml-1">종료 시각</label>
+                        <input
+                          type="datetime-local"
+                          name="endAt"
+                          value={endAt}
+                          onChange={(e) => {
+                            setEndAt(e.target.value);
+                            setShowConfirmSave(false);
+                          }}
+                          required
+                          className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                      </>
+                    )}
+                </div>
+              )}
 
-            <div className="space-y-1">
-              <label className="text-sm text-text-dim ml-1">집계 기준일 (리포트 날짜)</label>
-              <input
-                type="date"
-                name="reportDate"
-                value={reportDate}
-                onChange={(e) => {
-                  setReportDate(e.target.value);
-                  setShowConfirmSave(false);
-                }}
-                required
-                className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-            </div>
+              {duration > 0 && (
+                <div className="text-sm text-right px-1">
+                  총 <span className="font-bold text-primary-light">{formatDuration(duration)}</span>
+                  {duration > 18 * 60 && (
+                    <span className="text-warning ml-2">(18시간 초과 주의)</span>
+                  )}
+                </div>
+              )}
 
-            <div className="space-y-1">
-              <label className="text-sm text-text-dim ml-1">메모 (선택사항)</label>
-              <textarea
-                name="note"
-                defaultValue={session?.note || ""}
-                rows={2}
-                placeholder="특이사항이 있다면 적어주세요."
-                onChange={() => setShowConfirmSave(false)}
-                className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white placeholder-text-dim focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-              />
-            </div>
-
-            {isEdit && showConfirmSave && (
-              <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
-                <p className="text-sm font-semibold text-white">이 내용으로 기록을 수정하시겠습니까?</p>
-                <p className="text-xs text-text-dim mt-1">
-                  확정하면 최근 기록과 리포트에 바로 반영됩니다.
-                </p>
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (showConfirmSave) {
+              <div className="space-y-1">
+                <label className="text-sm text-text-dim ml-1">집계 기준일 (리포트 날짜)</label>
+                <input
+                  type="date"
+                  name="reportDate"
+                  value={reportDate}
+                  onChange={(e) => {
+                    setReportDate(e.target.value);
                     setShowConfirmSave(false);
-                    return;
-                  }
+                  }}
+                  required
+                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
 
-                  onClose();
-                }}
-                className="flex-1 bg-surface-elevated border border-border text-white font-bold py-3 px-4 rounded-xl hover:bg-surface-hover active:scale-[0.98] transition-all"
-              >
-                {showConfirmSave ? "다시 수정" : "취소"}
-              </button>
-              <SubmitButton label={isEdit && showConfirmSave ? "수정 확정" : "저장"} />
+              <div className="space-y-1">
+                <label className="text-sm text-text-dim ml-1">메모 (선택사항)</label>
+                <textarea
+                  name="note"
+                  defaultValue={session?.note || ""}
+                  rows={2}
+                  placeholder="특이사항이 있다면 적어주세요."
+                  onChange={() => setShowConfirmSave(false)}
+                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white placeholder-text-dim focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                />
+              </div>
+
+              {isEdit && showConfirmSave && (
+                <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
+                  <p className="text-sm font-semibold text-white">이 내용으로 기록을 수정하시겠습니까?</p>
+                  <p className="text-xs text-text-dim mt-1">
+                    확정하면 최근 기록과 리포트에 바로 반영됩니다.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-5 border-t border-white/10 bg-surface-elevated/80 pt-4 backdrop-blur-sm">
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showConfirmSave) {
+                      setShowConfirmSave(false);
+                      return;
+                    }
+
+                    onClose();
+                  }}
+                  className="flex-1 bg-surface-elevated border border-border text-white font-bold py-3 px-4 rounded-xl hover:bg-surface-hover active:scale-[0.98] transition-all"
+                >
+                  {showConfirmSave ? "다시 수정" : "취소"}
+                </button>
+                <SubmitButton label={isEdit && showConfirmSave ? "수정 확정" : "저장"} />
+              </div>
             </div>
           </form>
 
           {isEdit && editableSessionId && (
-            <div className="mt-8 border-t border-border pt-6">
+            <div className="mt-4 border-t border-white/10 bg-surface-elevated/80 pt-4 backdrop-blur-sm">
               {!showConfirmDelete ? (
                 <button
                   type="button"

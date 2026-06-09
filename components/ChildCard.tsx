@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import CircularProgress from "./CircularProgress";
-import { formatDuration, calculateDurationMinutes } from "@/lib/date/utils";
+import {
+  formatDuration,
+  calculateDurationMinutes,
+  toDatetimeLocalString,
+} from "@/lib/date/utils";
 import Link from "next/link";
 import { startWearing } from "@/actions/startWearing";
 import { endWearing } from "@/actions/endWearing";
@@ -65,7 +69,7 @@ export default function ChildCard({
     setIsPending(true);
     setActionError(null);
     try {
-      await startWearing(child.id, date.toISOString());
+      await startWearing(child.id, toDatetimeLocalString(date));
       setShowStartDialog(false);
     } catch (error) {
       setActionError(
@@ -81,7 +85,7 @@ export default function ChildCard({
     setIsPending(true);
     setActionError(null);
     try {
-      await endWearing(activeSession.id, date.toISOString());
+      await endWearing(activeSession.id, toDatetimeLocalString(date));
       setShowEndDialog(false);
     } catch (error) {
       setActionError(

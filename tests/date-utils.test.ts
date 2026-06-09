@@ -21,3 +21,10 @@ test("datetime-local strings round-trip in Asia/Seoul", () => {
   assert.equal(toDatetimeLocalString(parsed), original);
   assert.equal(formatKST(parsed, "yyyy-MM-dd HH:mm"), "2026-06-06 20:00");
 });
+
+test("getReportDate keeps early-morning KST sessions on the same local day", () => {
+  const parsed = parseDatetimeLocalString("2026-06-06T00:30");
+
+  assert.equal(parsed.toISOString(), "2026-06-05T15:30:00.000Z");
+  assert.equal(getReportDate(parsed), "2026-06-06");
+});
